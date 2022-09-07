@@ -42,6 +42,7 @@ function Unitful.string(r::StepRange{T}) where T<:Quantity
 	U = string(u)
 	S = ustrip(u, s) == 1 ?	repr(ustrip(u, a):ustrip(u, b)) : 
 								 	repr(ustrip(u, a):ustrip(u, s):ustrip(u, b))
+	length(typeof(u).parameters[1]) > 1 && return string("(", S, ")", "*(", U, ")")
 	string("(", S, ")", U)
 end
 
@@ -50,6 +51,7 @@ function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	u = unit(a)
 	U = string(u)
 	S = repr(ustrip(u, a):ustrip(u, s):ustrip(u, b))
+	length(typeof(u).parameters[1]) > 1 && return string("(", S, ")", "*(", U, ")")
 	string("(", S, ")", U)
 end
 
