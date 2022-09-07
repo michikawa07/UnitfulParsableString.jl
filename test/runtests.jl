@@ -6,27 +6,46 @@ using Unitful
     #* Unit only
     @test string(u"nm"      ) == "nm"      
     @test string(u"mm*kg"   ) == "kg*mm"   
-    @test string(u"mm/kg"   ) == "mm*kg^-1"   
+    @test string(u"mm/kg"   ) == "mm/kg"   
     @test string(u"m^2"     ) == "m^2"     
-    @test string(u"m^2/K^2" ) == "m^2*K^-2"
-    # @test string(u"m^0.1" ) == "m^0.1" #非有理数乗はうまくいかない
+    @test string(u"m^2/K^2" ) == "m^2/K^2"
+    @test string(u"m^(2//3)/K^(1/2)" ) == "m^(2/3)/K^(1/2)"
+    # @test string(u"m^0.1" ) == "m^0.1" #not work
 end
 
 @testset "Quantity" begin
-    # Float, Complex, StepRange
-    #* Float
-    @test string(1.0u"nm"      ) == "1.0nm"      
-    @test string(1.0u"mm*kg"   ) == "1.0kg*mm"   
-    @test string(1.0u"mm/kg"   ) == "1.0mm*kg^-1"   
-    @test string(1.0u"m^2"     ) == "1.0m^2"     
-    @test string(1.0u"m^2/K^2" ) == "1.0m^2*K^-2"
+    #* Int
+    @test string(2u"nm"      ) == "2(nm)"      
+    @test string(2u"mm*kg"   ) == "2(kg*mm)"   
+    @test string(2u"mm/kg"   ) == "2(mm/kg)"   
+    @test string(2u"m^2"     ) == "2(m^2)"     
+    @test string(2u"m^2/K^2" ) == "2(m^2/K^2)"
+    @test string(2u"m^(2//3)/K^(1/2)" ) == "2(m^(2/3)/K^(1/2))"
+
+    #* Float1
+    @test string(1.0u"nm"      ) == "1.0(nm)"      
+    @test string(1.0u"mm*kg"   ) == "1.0(kg*mm)"   
+    @test string(1.0u"mm/kg"   ) == "1.0(mm/kg)"   
+    @test string(1.0u"m^2"     ) == "1.0(m^2)"     
+    @test string(1.0u"m^2/K^2" ) == "1.0(m^2/K^2)"
+    @test string(1.0u"m^(2//3)/K^(1/2)" ) == "1.0(m^(2/3)/K^(1/2))"
+
+    #* Float2
+    @test string((1/2)u"nm"      ) == "0.5(nm)"      
+    @test string((1/2)u"mm*kg"   ) == "0.5(kg*mm)"   
+    @test string((1/2)u"mm/kg"   ) == "0.5(mm/kg)"   
+    @test string((1/2)u"m^2"     ) == "0.5(m^2)"     
+    @test string((1/2)u"m^2/K^2" ) == "0.5(m^2/K^2)"
+    @test string((1/2)u"m^(2//3)/K^(1/2)" ) == "0.5(m^(2/3)/K^(1/2))"
     
-    #* Float
+    #* Complex
     @test string((1.0+2im)u"nm"      ) == "(1.0 + 2.0im)nm"      
     @test string((1.0+2im)u"mm*kg"   ) == "(1.0 + 2.0im)kg*mm"   
-    @test string((1.0+2im)u"mm/kg"   ) == "(1.0 + 2.0im)mm*kg^-1"   
+    @test string((1.0+2im)u"mm/kg"   ) == "(1.0 + 2.0im)mm/kg"   
     @test string((1.0+2im)u"m^2"     ) == "(1.0 + 2.0im)m^2"     
-    @test string((1.0+2im)u"m^2/K^2" ) == "(1.0 + 2.0im)m^2*K^-2"
+    @test string((1.0+2im)u"m^2/K^2" ) == "(1.0 + 2.0im)m^2/K^2"
+    @test string((1.0+2im)u"m^(2//3)/K^(1/2)" ) == "(1.0 + 2.0im)m^(2/3)/K^(1/2)"
+
 end
 
 @testset "StepRange, StepRangeLen" begin
