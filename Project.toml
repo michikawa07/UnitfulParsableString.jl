@@ -3,6 +3,9 @@ uuid = "06c00241-927a-4d5b-bb5e-6b5a2ada3567"
 authors = ["michikawa07 <michikawa.ryohei@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+
 [compat]
 julia = "1"
 
