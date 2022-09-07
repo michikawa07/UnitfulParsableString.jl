@@ -4,7 +4,7 @@ using Unitful
 using Unitful: # unexported Struct 
 	AbstractQuantity, Unitlike, MixedUnits, Gain, Level
 using Unitful: # need for print
-	showval, sortexp, showrep
+	showval, sortexp, prefix, abbr, power
 
 has_unit_bracket(x::AbstractQuantity) = has_unit_bracket(x.val)
 has_unit_bracket(x::Complex) = false
@@ -22,15 +22,20 @@ function Unitful.string(x::Union{Gain, Level})
 end
 
 function Unitful.string(u::Unitlike)
-	io = IOBuffer()
-	first = ""
-	sep = "*"
+	io = IOContext(IOBuffer(), :fancy_exponent=>false)
+	first = true
 	foreach(sortexp(typeof(u).parameters[1])) do y
-		 print(io,first)
-		 showrep(IOContext(io, :fancy_exponent=>false), y) #これを自分で実装しなおす必要があるかもしれない．
-		 first = sep
+		p = 	power(y) == 1//1 ? "" :
+				power(y)  ≥  0   ? denominator(power(y)) == 1 ? "^" * string(power(y).num) : "^(" * replace(string(power(y)), "//" => "/") * ")" : 
+				power(y)  <  0	  ? denominator(power(y)) == 1 ? "^" * string(-power(y).num) : "^(" * replace(string(-power(y)), "//" => "/") * ")" : ""
+		sep = first ? "" : power(y)<0 ? "/" : "*"
+		print(io, sep)
+		print(io, prefix(y))
+		print(io, abbr(y))
+		print(io, p)
+		first = false
 	end
-	io |> take! |> String
+	io.io |> take! |> String
 end
 
 function Unitful.string(r::StepRange{T}) where T<:Quantity
