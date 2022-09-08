@@ -6,20 +6,15 @@ using Unitful: # unexported Struct
 using Unitful: # need for print
 	showval, sortexp, prefix, abbr, power
 
-has_unit_bracket(x::AbstractQuantity) = has_unit_bracket(x.val)
-has_unit_bracket(x::Complex) = false
-has_unit_bracket(x) = true
+#Meta.parse(str) |> Term.expressiontree
 
-function Unitful.string(x::AbstractQuantity)
-	v = sprint(showval, x.val, true)
-	u = string(unit(x))
-	has_unit_bracket(x) && return string(v, "(", u, ")")
-	string(v,  u)
-end
+has_value_bracket(x::Quantity) = has_value_bracket(x.val)
+has_value_bracket(::Union{Complex, Rational}) = true
+has_value_bracket(::Any) = false
 
-function Unitful.string(x::Union{Gain, Level})
-	
-end
+has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) #&& !has_value_bracket(x)
+has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 
+has_unit_bracket(::Any) = false
 
 function Unitful.string(u::Unitlike)
 	isFirst = true
@@ -37,22 +32,33 @@ function Unitful.string(u::Unitlike)
 	str
 end
 
+function Unitful.string(x::AbstractQuantity)
+	v = x.val |> string
+	u = unit(x) |> string
+	V = has_value_bracket(x) ? string("(", v, ")") : v
+	U = has_unit_bracket(x) ? string("(", u, ")") : u
+	sep = has_value_bracket(x) && has_unit_bracket(x) ? "*" : ""
+	string(V, sep, U)
+end
+
+function Unitful.string(x::Union{Gain, Level})
+	
+end
+
 function Unitful.string(r::StepRange{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	u = unit(a)
-	U = string(u)
+	u = unit(a) 
 	S = ustrip(u, s) == 1 ?	repr(ustrip(u, a):ustrip(u, b)) : 
 								 	repr(ustrip(u, a):ustrip(u, s):ustrip(u, b))
-	length(typeof(u).parameters[1]) > 1 && return string("(", S, ")", "*(", U, ")")
+	U = has_unit_bracket(u) ? "*("*string(u)*")" : string(u)
 	string("(", S, ")", U)
 end
 
 function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
 	u = unit(a)
-	U = string(u)
 	S = repr(ustrip(u, a):ustrip(u, s):ustrip(u, b))
-	length(typeof(u).parameters[1]) > 1 && return string("(", S, ")", "*(", U, ")")
+	U = has_unit_bracket(u) ? "*("*string(u)*")" : string(u)
 	string("(", S, ")", U)
 end
 
