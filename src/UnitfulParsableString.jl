@@ -4,7 +4,7 @@ using Unitful
 using Unitful: # unexported Struct 
 	AbstractQuantity, Unitlike, MixedUnits, Gain, Level
 using Unitful: # need for print
-	sortexp, prefix, abbr, power
+	prefix, abbr, power
 
 has_value_bracket(x::Quantity) = has_value_bracket(x.val)
 has_value_bracket(::Union{Gain, Level}) = true
@@ -15,27 +15,31 @@ has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) #&& !has_value_bracket
 has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 
 has_unit_bracket(::Any) = false
 
+function sortedunits(u)
+	us = collect(typeof(u).parameters[1])
+	sort!(us, by = u->power(u), rev=true)
+end
+
 """
 メモ  
 これ単体でパース出来る様に作る
 """
 function Unitful.string(u::Unitlike)
-	isFirst = true
+	unit_list = sortedunits(u)
+	p_max = power(unit_list[1])
 	str = ""
-	foreach(sortexp(typeof(u).parameters[1])) do y
-		p = power(y) 
+	for (i, y) in enumerate(unit_list)
 		sep = "*"
-		isDivNote = !isFirst && p.den==1
-		if isDivNote
-			sep = p ≥ 0 ? "*" : "/"
+		p = power(y) 
+		if p_max ≥ 0 && (p.num<0 && p.den==1)
+			sep = "/"
 			p = abs(p)
 		end
-		pow = p == 1           ? ""  :
+		pow = p == 1//1        ? ""  :
 		      p.den == 1       ? string("^", p.num) : 
 		      p == p.num/p.den ? string("^", "(", p.num, "/" , p.den, ")") :
 		                         string("^", "(", p.num, "//", p.den, ")")
-		str *= string(isFirst ? "" : sep, prefix(y), abbr(y), pow)
-		isFirst = false
+		str = string(str, (i==1 ? "" : sep), prefix(y), abbr(y), pow)
 	end
 	str
 end
