@@ -22,16 +22,17 @@ function Unitful.string(x::Union{Gain, Level})
 end
 
 function Unitful.string(u::Unitlike)
-	first = true
+	isFirst = true
 	str = ""
 	foreach(sortexp(typeof(u).parameters[1])) do y
-		pow = power(y)
-		sep = first ? "" : pow<0 ? "/" : "*"
-		p = abs(pow)== 1	? ""  :
-			 pow.den == 1	? string("^" , abs(pow.num)) : 
-			 					  string("^(", abs(pow.num), "/", pow.den, ")")
-		str *= string(sep, prefix(y), abbr(y), p)
-		first = false
+		sep = isFirst ? "" : power(y)<0 ? "/" : "*"
+		p = abs(power(y))
+		pow =     p == 1           ? ""  :
+		      p.den == 1           ? string("^", p.num) : 
+		          p == p.num/p.den ? string("^", "(", p.num, "/" , p.den, ")") :
+		                             string("^", "(", p.num, "//", p.den, ")")
+		str *= string(sep, prefix(y), abbr(y), pow)
+		isFirst = false
 	end
 	str
 end
