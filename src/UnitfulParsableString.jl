@@ -35,10 +35,10 @@ end
 function Unitful.string(x::AbstractQuantity)
 	v = x.val |> string
 	u = unit(x) |> string
-	V = has_value_bracket(x) ? string("(", v, ")") : v
-	U = has_unit_bracket(x) ? string("(", u, ")") : u
+	val = has_value_bracket(x) ? string("(", v, ")") : v
+	uni = has_unit_bracket(x)  ? string("(", u, ")") : u
 	sep = has_value_bracket(x) && has_unit_bracket(x) ? "*" : ""
-	string(V, sep, U)
+	string(val, sep, uni)
 end
 
 function Unitful.string(x::Union{Gain, Level})
@@ -47,19 +47,19 @@ end
 
 function Unitful.string(r::StepRange{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	u = unit(a) 
-	S = ustrip(u, s) == 1 ?	repr(ustrip(u, a):ustrip(u, b)) : 
-								 	repr(ustrip(u, a):ustrip(u, s):ustrip(u, b))
-	U = has_unit_bracket(u) ? "*("*string(u)*")" : string(u)
-	string("(", S, ")", U)
+	U,u = unit(a), string(unit(a))
+	rng = ustrip(U, s)==1 ? repr(ustrip(U, a):ustrip(U, b)) : 
+	                        repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
+	uni = has_unit_bracket(U) ? string("*", "(", u, ")") : u
+	string("(", rng, ")", uni)
 end
 
 function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	u = unit(a)
-	S = repr(ustrip(u, a):ustrip(u, s):ustrip(u, b))
-	U = has_unit_bracket(u) ? "*("*string(u)*")" : string(u)
-	string("(", S, ")", U)
+	U,u = unit(a), string(unit(a))
+	rng = repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
+	uni = has_unit_bracket(U) ? string("*", "(", u, ")") : u
+	string("(", rng, ")", uni)
 end
 
 function Unitful.string(x::typeof(NoDims))
