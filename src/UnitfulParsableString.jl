@@ -6,9 +6,8 @@ using Unitful: # unexported Struct
 using Unitful: # need for print
 	sortexp, prefix, abbr, power
 
-#Meta.parse(str) |> Term.expressiontree
-
 has_value_bracket(x::Quantity) = has_value_bracket(x.val)
+has_value_bracket(::Union{Gain, Level}) = true
 has_value_bracket(::Union{Complex, Rational}) = true
 has_value_bracket(::Any) = false
 
@@ -16,6 +15,10 @@ has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) #&& !has_value_bracket
 has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 
 has_unit_bracket(::Any) = false
 
+"""
+メモ  
+これ単体でパース出来る様に作る
+"""
 function Unitful.string(u::Unitlike)
 	isFirst = true
 	str = ""
@@ -46,8 +49,16 @@ function Unitful.string(x::AbstractQuantity)
 	string(val, sep, uni)
 end
 
-function Unitful.string(x::Union{Gain, Level})
-	
+function Unitful.string(x::Gain)
+	v = x.val |> string
+	val = has_value_bracket(x.val) ? string("(", v, ")") : v
+	string(val, abbr(x))
+end
+
+function Unitful.string(x::Level)
+	v = ustrip(x) |> string
+	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
+	string(val, abbr(x))
 end
 
 function Unitful.string(r::StepRange{T}) where T<:Quantity
