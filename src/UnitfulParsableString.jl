@@ -4,7 +4,7 @@ using Unitful
 using Unitful: # unexported Struct 
 	AbstractQuantity, Unitlike, MixedUnits, Gain, Level
 using Unitful: # need for print
-	showval, sortexp, prefix, abbr, power
+	sortexp, prefix, abbr, power
 
 #Meta.parse(str) |> Term.expressiontree
 
@@ -20,13 +20,18 @@ function Unitful.string(u::Unitlike)
 	isFirst = true
 	str = ""
 	foreach(sortexp(typeof(u).parameters[1])) do y
-		sep = isFirst ? "" : power(y)<0 ? "/" : "*"
-		p = abs(power(y))
-		pow =     p == 1           ? ""  :
-		      p.den == 1           ? string("^", p.num) : 
-		          p == p.num/p.den ? string("^", "(", p.num, "/" , p.den, ")") :
-		                             string("^", "(", p.num, "//", p.den, ")")
-		str *= string(sep, prefix(y), abbr(y), pow)
+		p = power(y) 
+		sep = "*"
+		isDivNote = !isFirst && p.den==1
+		if isDivNote
+			sep = p ≥ 0 ? "*" : "/"
+			p = abs(p)
+		end
+		pow = p == 1           ? ""  :
+		      p.den == 1       ? string("^", p.num) : 
+		      p == p.num/p.den ? string("^", "(", p.num, "/" , p.den, ")") :
+		                         string("^", "(", p.num, "//", p.den, ")")
+		str *= string(isFirst ? "" : sep, prefix(y), abbr(y), pow)
 		isFirst = false
 	end
 	str
