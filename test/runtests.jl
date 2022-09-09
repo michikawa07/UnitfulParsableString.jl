@@ -5,29 +5,53 @@ using Unitful
 #Meta.parse(str) |> Term.expressiontree
 
 @testset "FreeUnit" begin
-    #* Unit only
-    @test string(u"nm"               ) == "nm"      
-    @test string(u"K^-1"             ) == "K^-1"   
-    @test string(u"NoUnits/minute"   ) == "minute^-1"   
-    @test string(u"(m*Hz)^-1"        ) == "Hz^-1*m^-1"   
-    @test string(u"mm*kg"            ) == "kg*mm"   
-    @test string(u"mm/kg"            ) == "mm/kg"   
-    @test string(u"m^2"              ) == "m^2"     
-    @test string(u"m^2/K^2"          ) == "m^2/K^2"
-    @test string(u"m^(2//3)/K^(1/2)" ) == "m^(2//3)*K^(-1/2)"
+    #* no unit
+    u=u"NoUnits"       ; @test string(u) == ""      
+    #* a unit
+    u=u"nm"            ; @test string(u) == "nm"      
+    u=u"NoUnits/s"     ; @test string(u) == "s^-1"   
+    u=u"K^-2"          ; @test string(u) == "K^-2"   
+    u=u"m^(1/2)"       ; @test string(u) == "m^(1/2)"     
+    u=u"K^(1//2)"      ; @test string(u) == "K^(1/2)"
+    u=u"m^(2//3)"      ; @test string(u) == "m^(2//3)"
+    u=u"kg^(-1/2)"     ; @test string(u) == "kg^(-1/2)"     
+    #* two unit
+    u=u"mm*kg"         ; @test string(u) == "kg*mm"   
+    u=u"mm/kg"         ; @test string(u) == "mm/kg"   
+    u=u"(m*Hz)^-1"     ; @test string(u) == "Hz^-1*m^-1"   
+    u=u"(m/Hz)^-1"     ; @test string(u) == "Hz/m"   
+    u=u"m^2/K^3"       ; @test string(u) == "m^2/K^3"
+    u=u"m^(1/2)/K^3"   ; @test string(u) == "m^(1/2)*K^-3"
+    u=u"m^2/K^(1//3)"  ; @test string(u) == "m^2*K^(-1//3)"
+    #* more unit
+    u=u"mm/kg/s^2"     ; @test string(u) == "mm/kg/s^2"   
+    u=u"m/K^(1/2)/kg"  ; @test string(u) == "m*kg^-1*K^(-1/2)"
+    u=u"m/K^(1/2)/kg^2"; @test string(u) == "m*kg^-2*K^(-1/2)"
 end
 
 @testset "FreeUnit reversibility" begin
-    #* Unit only
-    u=u"nm"               ; @test uparse(string(u)) == u
-    u=u"K^-1"             ; @test uparse(string(u)) == u
-    u=u"NoUnits/minute"   ; @test uparse(string(u)) == u
-    u=u"(m*Hz)^-1"        ; @test uparse(string(u)) == u
-    u=u"mm*kg"            ; @test uparse(string(u)) == u
-    u=u"mm/kg"            ; @test uparse(string(u)) == u
-    u=u"m^2"              ; @test uparse(string(u)) == u
-    u=u"m^2/K^2"          ; @test uparse(string(u)) == u
-    u=u"m^(2//3)/K^(1/2)" ; @test uparse(string(u)) == u
+    #* no unit
+    #u=u"NoUnits"       ; @test string(u)|>uparse == u #Cannot parse
+    #* a unit
+    u=u"nm"            ; @test string(u)|>uparse == u
+    u=u"NoUnits/s"     ; @test string(u)|>uparse == u
+    u=u"K^-2"          ; @test string(u)|>uparse == u
+    u=u"m^(1/2)"       ; @test string(u)|>uparse == u
+    u=u"K^(1//2)"      ; @test string(u)|>uparse == u
+    u=u"m^(2//3)"      ; @test string(u)|>uparse == u
+    u=u"kg^(-1/2)"     ; @test string(u)|>uparse == u
+    #* two unit
+    u=u"mm*kg"         ; @test string(u)|>uparse == u
+    u=u"mm/kg"         ; @test string(u)|>uparse == u
+    u=u"(m*Hz)^-1"     ; @test string(u)|>uparse == u
+    u=u"(m/Hz)^-1"     ; @test string(u)|>uparse == u
+    u=u"m^2/K^3"       ; @test string(u)|>uparse == u
+    u=u"m^(1/2)/K^3"   ; @test string(u)|>uparse == u
+    u=u"m^2/K^(1//3)"  ; @test string(u)|>uparse == u
+    #* more unit
+    u=u"mm/kg/s^2"     ; @test string(u)|>uparse == u
+    u=u"m/K^(1/2)/kg"  ; @test string(u)|>uparse == u
+    u=u"m/K^(1/2)/kg^2"; @test string(u)|>uparse == u
 end
 
 @testset "Quantity Float" begin
@@ -99,6 +123,7 @@ end
     @test string((1:10)u"mm*kg"   ) == "(1:10)*(kg*mm)"   
     @test string((1:10)u"mm/kg"   ) == "(1:10)*(mm/kg)"   
     @test string((1:10)u"m^2/K^2" ) == "(1:10)*(m^2/K^2)" 
+    @test string((1:10)u"m^2/K^3/s" ) == "(1:10)*(m^2/K^3/s)" 
     @test string((1:10)u"m^(2//3)/K^(1/2)" ) ==  "(1:10)*(m^(2//3)*K^(-1/2))"
 end
 

@@ -17,7 +17,7 @@ has_unit_bracket(::Any) = false
 
 function sortedunits(u)
 	us = collect(typeof(u).parameters[1])
-	sort!(us, by = u->power(u), rev=true)
+	sort!(us, by = u->power(u)>0 ? 1 : -1, rev=true)
 end
 
 """
@@ -26,12 +26,15 @@ end
 """
 function Unitful.string(u::Unitlike)
 	unit_list = sortedunits(u)
-	p_max = power(unit_list[1])
+	#* Express as `^-1` -> `/` 
+	#* if there exists a unit whose exponent part is positive 
+	#* and all exponents are written as integers.
+	is_div_note = any(u->power(u)>0, unit_list) && all(u->power(u).den==1, unit_list)
 	str = ""
 	for (i, y) in enumerate(unit_list)
 		sep = "*"
 		p = power(y) 
-		if p_max ≥ 0 && (p.num<0 && p.den==1)
+		if is_div_note && p.num<0
 			sep = "/"
 			p = abs(p)
 		end
@@ -82,8 +85,8 @@ function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	string("(", rng, ")", uni)
 end
 
-function Unitful.string(x::typeof(NoDims))
-	"NoDims"
+function Unitful.string(x::typeof(NoUnits))
+	"NoUnits"
 end
 
 end
