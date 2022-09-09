@@ -4,127 +4,125 @@ using Unitful
 
 #Meta.parse(str) |> Term.expressiontree
 
-@testset "FreeUnit" begin
-    #* no unit
-    u=u"NoUnits"       ; @test string(u) == ""      
-    #* a unit
-    u=u"nm"            ; @test string(u) == "nm"      
-    u=u"NoUnits/s"     ; @test string(u) == "s^-1"   
-    u=u"K^-2"          ; @test string(u) == "K^-2"   
-    u=u"m^(1/2)"       ; @test string(u) == "m^(1/2)"     
-    u=u"K^(1//2)"      ; @test string(u) == "K^(1/2)"
-    u=u"m^(2//3)"      ; @test string(u) == "m^(2//3)"
-    u=u"kg^(-1/2)"     ; @test string(u) == "kg^(-1/2)"     
-    #* two unit
-    u=u"mm*kg"         ; @test string(u) == "kg*mm"   
-    u=u"mm/kg"         ; @test string(u) == "mm/kg"   
-    u=u"(m*Hz)^-1"     ; @test string(u) == "Hz^-1*m^-1"   
-    u=u"(m/Hz)^-1"     ; @test string(u) == "Hz/m"   
-    u=u"m^2/K^3"       ; @test string(u) == "m^2/K^3"
-    u=u"m^(1/2)/K^3"   ; @test string(u) == "m^(1/2)*K^-3"
-    u=u"m^2/K^(1//3)"  ; @test string(u) == "m^2*K^(-1//3)"
-    #* more unit
-    u=u"mm/kg/s^2"     ; @test string(u) == "mm/kg/s^2"   
-    u=u"m/K^(1/2)/kg"  ; @test string(u) == "m*kg^-1*K^(-1/2)"
-    u=u"m/K^(1/2)/kg^2"; @test string(u) == "m*kg^-2*K^(-1/2)"
+macro mytest(unit, str) 
+    quote
+        u,s = $unit, $str
+        @show u,s
+        @test string(u)==s
+        @test uparse(s)==u        
+    end
 end
 
-@testset "FreeUnit reversibility" begin
+macro mytest_Meta(unit, str) 
+    quote
+        u,s = $unit, $str
+        @show u,s
+        @test string(u)==s
+        @test Unitful.eval(Meta.parse(s))==u
+    end
+end
+
+@testset "FreeUnit" begin
     #* no unit
-    #u=u"NoUnits"       ; @test string(u)|>uparse == u #Cannot parse
+    @mytest u"NoUnits" "NoUnits"
     #* a unit
-    u=u"nm"            ; @test string(u)|>uparse == u
-    u=u"NoUnits/s"     ; @test string(u)|>uparse == u
-    u=u"K^-2"          ; @test string(u)|>uparse == u
-    u=u"m^(1/2)"       ; @test string(u)|>uparse == u
-    u=u"K^(1//2)"      ; @test string(u)|>uparse == u
-    u=u"m^(2//3)"      ; @test string(u)|>uparse == u
-    u=u"kg^(-1/2)"     ; @test string(u)|>uparse == u
+    @mytest u"nm"        "nm"        
+    @mytest u"NoUnits/s" "s^-1"      
+    @mytest u"K^-2"      "K^-2"      
+    @mytest u"m^(1/2)"   "m^(1/2)"   
+    @mytest u"K^(1//2)"  "K^(1/2)"   
+    @mytest u"m^(2//3)"  "m^(2//3)"  
+    @mytest u"kg^(-1/2)" "kg^(-1/2)" 
     #* two unit
-    u=u"mm*kg"         ; @test string(u)|>uparse == u
-    u=u"mm/kg"         ; @test string(u)|>uparse == u
-    u=u"(m*Hz)^-1"     ; @test string(u)|>uparse == u
-    u=u"(m/Hz)^-1"     ; @test string(u)|>uparse == u
-    u=u"m^2/K^3"       ; @test string(u)|>uparse == u
-    u=u"m^(1/2)/K^3"   ; @test string(u)|>uparse == u
-    u=u"m^2/K^(1//3)"  ; @test string(u)|>uparse == u
+    @mytest u"mm*kg"        "kg*mm"        
+    @mytest u"mm/kg"        "mm/kg"        
+    @mytest u"(m*Hz)^-1"    "Hz^-1*m^-1"   
+    @mytest u"(m/Hz)^-1"    "Hz/m"         
+    @mytest u"m^2/K^3"      "m^2/K^3"      
+    @mytest u"m^(1/2)/K^3"  "m^(1/2)*K^-3" 
+    @mytest u"m^2/K^(1//3)" "m^2*K^(-1//3)"
     #* more unit
-    u=u"mm/kg/s^2"     ; @test string(u)|>uparse == u
-    u=u"m/K^(1/2)/kg"  ; @test string(u)|>uparse == u
-    u=u"m/K^(1/2)/kg^2"; @test string(u)|>uparse == u
+    @mytest u"mm*kg^3*s^(1/2)" "kg^3*mm*s^(1/2)" 
+    @mytest u"mm/kg/s^2"       "mm/kg/s^2"       
+    @mytest u"m/K^(1/2)/kg"    "m*kg^-1*K^(-1/2)"
+    @mytest u"m/K^(1/2)/kg^-2" "kg^2*m*K^(-1/2)" 
 end
 
 @testset "Quantity Float" begin
-    @test string(u"1.0nm"               ) == "1.0nm"      
-    @test string(u"1.0K^-1"             ) == "1.0K^-1"   
-    @test string(u"1.0/minute"          ) == "1.0minute^-1"   
-    @test string(u"1.0(m*Hz)^-1"        ) == "1.0(Hz^-1*m^-1)"     
-    @test string(u"1.0m^2"              ) == "1.0m^2"     
-    @test string(u"1.0mm*kg"            ) == "1.0(kg*mm)"   
-    @test string(u"1.0mm/kg"            ) == "1.0(mm/kg)"   
-    @test string(u"1.0m^2/K^2"          ) == "1.0(m^2/K^2)"
-    @test string(u"1.0m^(2//3)/K^(1/2)" ) == "1.0(m^(2//3)*K^(-1/2))"
-
-    @test string(1/2u"nm"               ) == "0.5nm^-1"      
-    @test string(1/2u"K^-1"             ) == "0.5K"   
-    @test string(1/2u"m^2"              ) == "0.5m^-2"     
-    @test string(1/2u"mm*kg"            ) == "0.5(kg^-1*mm^-1)"   
-    @test string(1/2u"mm/kg"            ) == "0.5(kg/mm)"   
-    @test string(1/2u"m^2/K^2"          ) == "0.5(K^2/m^2)"
-    @test string(1/2u"m^(2//3)/K^(1/2)" ) == "0.5(K^(1/2)*m^(-2//3))"
-end
-
-@testset "Quantity Float reversibility" begin
-    u=u"1.0nm"               ; @test uparse(string(u)) == u
-    u=u"1.0K^-1"             ; @test uparse(string(u)) == u
-    u=u"1.0/s"               ; @test uparse(string(u)) == u
-    u=u"1.0NoUnits/minute"   ; @test uparse(string(u)) == u
-    u=u"1.0mm*kg"            ; @test uparse(string(u)) == u
-    u=u"1.0mm/kg"            ; @test uparse(string(u)) == u
-    u=u"1.0m^2"              ; @test uparse(string(u)) == u
-    u=u"1.0m^2/K^2"          ; @test uparse(string(u)) == u
-    u=u"1.0m^(2//3)/K^(1/2)" ; @test uparse(string(u)) == u
-
-    u=1/2u"nm"               ; @test uparse(string(u)) == u
-    u=1/2u"K^-1"             ; @test uparse(string(u)) == u
-    u=1/2u"m^2"              ; @test uparse(string(u)) == u
-    u=1/2u"mm*kg"            ; @test uparse(string(u)) == u
-    u=1/2u"mm/kg"            ; @test uparse(string(u)) == u
-    u=1/2u"m^2/K^2"          ; @test uparse(string(u)) == u
-    u=1/2u"m^(2//3)/K^(1/2)" ; @test uparse(string(u)) == u
+    #* no unit
+    @mytest u"1.0"         "1.0"
+    @mytest u"2.0NoUnits"  "2.0"
+    @mytest u"3.0/NoUnits" "3.0"
+    #* a unit
+    @mytest u"1.0nm"        "1.0nm"        
+    @mytest u"1.0NoUnits/s" "1.0s^-1"      
+    @mytest u"1.0K^-2"      "1.0K^-2"      
+    @mytest u"1.0m^(1/2)"   "1.0m^(1/2)"   
+    @mytest u"1.0K^(1//2)"  "1.0K^(1/2)"   
+    @mytest u"1.0m^(2//3)"  "1.0m^(2//3)"  
+    @mytest u"1.0kg^(-1/2)" "1.0kg^(-1/2)" 
+    @mytest 1/2u"nm"        "0.5nm^-1"        
+    @mytest 1/2u"NoUnits/s" "0.5s"         
+    @mytest 1/2u"K^-2"      "0.5K^2"       
+    @mytest 1/2u"m^(1/2)"   "0.5m^(-1/2)"  
+    @mytest 1/2u"K^(1//2)"  "0.5K^(-1/2)"  
+    @mytest 1/2u"m^(2//3)"  "0.5m^(-2//3)" 
+    @mytest 1/2u"kg^(-1/2)" "0.5kg^(1/2)"  
+    #* two unit
+    @mytest u"1.0mm*kg"        "1.0(kg*mm)"        
+    @mytest u"1.0mm/kg"        "1.0(mm/kg)"        
+    @mytest u"1.0(m*Hz)^-1"    "1.0(Hz^-1*m^-1)"   
+    @mytest u"1.0(m/Hz)^-1"    "1.0(Hz/m)"         
+    @mytest u"1.0m^2/K^3"      "1.0(m^2/K^3)"      
+    @mytest u"1.0m^(1/2)/K^3"  "1.0(m^(1/2)*K^-3)" 
+    @mytest u"1.0m^2/K^(1//3)" "1.0(m^2*K^(-1//3))"
+    @mytest 1/2u"mm*kg"        "0.5(kg^-1*mm^-1)"  
+    @mytest 1/2u"mm/kg"        "0.5(kg/mm)"        
+    @mytest 1/2u"(m*Hz)^-1"    "0.5(Hz*m)"         
+    @mytest 1/2u"(m/Hz)^-1"    "0.5(m/Hz)"         
+    @mytest 1/2u"m^2/K^3"      "0.5(K^3/m^2)"      
+    @mytest 1/2u"m^(1/2)/K^3"  "0.5(K^3*m^(-1/2))" 
+    @mytest 1/2u"m^2/K^(1//3)" "0.5(K^(1//3)*m^-2)"
+    #* more unit
+    @mytest u"1.0mm*kg^3*s^(1/2)" "1.0(kg^3*mm*s^(1/2))"      
+    @mytest u"1.0mm/kg/s^2"       "1.0(mm/kg/s^2)"            
+    @mytest u"1.0m/K^(1/2)/kg"    "1.0(m*kg^-1*K^(-1/2))"     
+    @mytest u"1.0m/K^(1/2)/kg^-2" "1.0(kg^2*m*K^(-1/2))"      
+    @mytest 1/2u"mm*kg^3*s^(1/2)" "0.5(kg^-3*mm^-1*s^(-1/2))" 
+    @mytest 1/2u"mm/kg/s^2"       "0.5(kg*s^2/mm)"            
+    @mytest 1/2u"m/K^(1/2)/kg"    "0.5(kg*K^(1/2)*m^-1)"      
+    @mytest 1/2u"m/K^(1/2)/kg^-2" "0.5(K^(1/2)*kg^-2*m^-1)"   
 end
 
 @testset "Quantity Complex" begin   
-    #* Complex
-    @test string((1.0+2im)u"nm"      ) == "(1.0 + 2.0im)nm"      
-    @test string((1.0+2im)u"K^-1"    ) == "(1.0 + 2.0im)K^-1"   
-    @test string((1.0+2im)u"m^2"     ) == "(1.0 + 2.0im)m^2"     
-    @test string((1.0+2im)u"mm*kg"   ) == "(1.0 + 2.0im)*(kg*mm)"   
-    @test string((1.0+2im)u"mm/kg"   ) == "(1.0 + 2.0im)*(mm/kg)"   
-    @test string((1.0+2im)u"m^2/K^2" ) == "(1.0 + 2.0im)*(m^2/K^2)"
-    @test string((1.0+2im)u"m^(2//3)/K^(1/2)" ) == "(1.0 + 2.0im)*(m^(2//3)*K^(-1/2))"
+    @mytest (1.0+2im)u"nm"               "(1.0 + 2.0im)nm"                  
+    @mytest (1.0+2im)u"K^-1"             "(1.0 + 2.0im)K^-1"                
+    @mytest (1.0+2im)u"m^2"              "(1.0 + 2.0im)m^2"                 
+    @mytest (1.0+2im)u"mm*kg"            "(1.0 + 2.0im)*(kg*mm)"            
+    @mytest (1.0+2im)u"mm/kg"            "(1.0 + 2.0im)*(mm/kg)"            
+    @mytest (1.0+2im)u"m^2/K^2"          "(1.0 + 2.0im)*(m^2/K^2)"          
+    @mytest (1.0+2im)u"m^(2//3)/K^(1/2)" "(1.0 + 2.0im)*(m^(2//3)*K^(-1/2))"
 end
 
 @testset "Quantity Rational" begin
-    #* Rational
-    @test string((-2//3)u"nm"      ) == "(-2//3)nm"      
-    @test string((-2//3)u"K^-1"    ) == "(-2//3)K^-1"   
-    @test string((-2//3)u"m^2"     ) == "(-2//3)m^2"     
-    @test string((-2//3)u"mm*kg"   ) == "(-2//3)*(kg*mm)"   
-    @test string((-2//3)u"mm/kg"   ) == "(-2//3)*(mm/kg)"   
-    @test string((-2//3)u"m^2/K^2" ) == "(-2//3)*(m^2/K^2)"
-    @test string((-2//3)u"m^(2//3)/K^(1/2)" ) == "(-2//3)*(m^(2//3)*K^(-1/2))"
+    @mytest (-2//3)u"nm"               "(-2//3)nm"                  
+    @mytest (-2//3)u"K^-1"             "(-2//3)K^-1"                
+    @mytest (-2//3)u"m^2"              "(-2//3)m^2"                 
+    @mytest (-2//3)u"mm*kg"            "(-2//3)*(kg*mm)"            
+    @mytest (-2//3)u"mm/kg"            "(-2//3)*(mm/kg)"            
+    @mytest (-2//3)u"m^2/K^2"          "(-2//3)*(m^2/K^2)"          
+    @mytest (-2//3)u"m^(2//3)/K^(1/2)" "(-2//3)*(m^(2//3)*K^(-1/2))"
 end
 
 @testset "Quantity StepRange" begin
-    @test string((1:10)u"nm"      ) == "(1:10)nm"      
-    @test string((1:10)u"K^-1"    ) == "(1:10)K^-1"   
-    @test string((1:10)u"m^2"     ) == "(1:10)m^2"     
-    @test string((1:10)u"mm*kg"   ) == "(1:10)*(kg*mm)"   
-    @test string((1:10)u"mm/kg"   ) == "(1:10)*(mm/kg)"   
-    @test string((1:10)u"m^2/K^2" ) == "(1:10)*(m^2/K^2)" 
-    @test string((1:10)u"m^2/K^3/s" ) == "(1:10)*(m^2/K^3/s)" 
-    @test string((1:10)u"m^(2//3)/K^(1/2)" ) ==  "(1:10)*(m^(2//3)*K^(-1/2))"
+    @mytest_Meta (1:10)u"nm"               "(1:10)nm"                  
+    @mytest_Meta (1:10)u"K^-1"             "(1:10)K^-1"                
+    @mytest_Meta (1:10)u"m^2"              "(1:10)m^2"                 
+    @mytest_Meta (1:10)u"mm*kg"            "(1:10)*(kg*mm)"            
+    @mytest_Meta (1:10)u"mm/kg"            "(1:10)*(mm/kg)"            
+    @mytest_Meta (1:10)u"m^2/K^2"          "(1:10)*(m^2/K^2)"          
+    @mytest_Meta (1:10)u"m^2/K^3/s"        "(1:10)*(m^2/K^3/s)"        
+    @mytest_Meta (1:10)u"m^(2//3)/K^(1/2)" "(1:10)*(m^(2//3)*K^(-1/2))"
 end
 
 @testset "Quantity StepRangeLen" begin
