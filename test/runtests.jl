@@ -2,7 +2,10 @@ using UnitfulParsableString
 using Test, Term
 using Unitful
 
-#Meta.parse(str) |> Term.expressiontree
+# checkexpr(str) = Meta.parse(str) |> Term.expressiontree
+# typeof(1u"m") |> Term.typestree |> display
+# typeof(u"m") |> Term.typestree |> display
+# typeof(u"dB") |> Term.typestree |> display
 
 macro mytest(unit, str) 
     quote
@@ -22,7 +25,7 @@ macro mytest_Meta(unit, str)
     end
 end
 
-@testset "FreeUnit" begin
+@testset "Units" begin
     #* no unit
     @mytest u"NoUnits" "NoUnits"
     #* a unit
@@ -95,110 +98,162 @@ end
 end
 
 @testset "Quantity Complex" begin   
-    @mytest (1.0+2im)u"nm"               "(1.0 + 2.0im)nm"                  
-    @mytest (1.0+2im)u"K^-1"             "(1.0 + 2.0im)K^-1"                
-    @mytest (1.0+2im)u"m^2"              "(1.0 + 2.0im)m^2"                 
-    @mytest (1.0+2im)u"mm*kg"            "(1.0 + 2.0im)*(kg*mm)"            
-    @mytest (1.0+2im)u"mm/kg"            "(1.0 + 2.0im)*(mm/kg)"            
-    @mytest (1.0+2im)u"m^2/K^2"          "(1.0 + 2.0im)*(m^2/K^2)"          
-    @mytest (1.0+2im)u"m^(2//3)/K^(1/2)" "(1.0 + 2.0im)*(m^(2//3)*K^(-1/2))"
+    #* no unit
+    @mytest (1.0+0im)u"NoUnits"    "1.0 + 0.0im"
+    @mytest (1.0+0im)u"NoUnits^-1" "1.0 + 0.0im"
+    #* a unit
+    @mytest (1.0+0im)u"nm"        "(1.0 + 0.0im)nm"        
+    @mytest (1.0+0im)u"NoUnits/s" "(1.0 + 0.0im)s^-1"      
+    @mytest (1.0+0im)u"K^-2"      "(1.0 + 0.0im)K^-2"      
+    @mytest (1.0+0im)u"m^(1/2)"   "(1.0 + 0.0im)m^(1/2)"   
+    @mytest (1.0+0im)u"K^(1//2)"  "(1.0 + 0.0im)K^(1/2)"   
+    @mytest (1.0+0im)u"m^(2//3)"  "(1.0 + 0.0im)m^(2//3)"  
+    @mytest (1.0+0im)u"kg^(-1/2)" "(1.0 + 0.0im)kg^(-1/2)" 
+    #* two unit
+    @mytest (1.0+0im)u"mm*kg"        "(1.0 + 0.0im)*(kg*mm)"        
+    @mytest (1.0+0im)u"mm/kg"        "(1.0 + 0.0im)*(mm/kg)"        
+    @mytest (1.0+0im)u"(m*Hz)^-1"    "(1.0 + 0.0im)*(Hz^-1*m^-1)"   
+    @mytest (1.0+0im)u"(m/Hz)^-1"    "(1.0 + 0.0im)*(Hz/m)"         
+    @mytest (1.0+0im)u"m^2/K^3"      "(1.0 + 0.0im)*(m^2/K^3)"      
+    @mytest (1.0+0im)u"m^(1/2)/K^3"  "(1.0 + 0.0im)*(m^(1/2)*K^-3)" 
+    @mytest (1.0+0im)u"m^2/K^(1//3)" "(1.0 + 0.0im)*(m^2*K^(-1//3))"
+    #* more unit
+    @mytest (1.0+0im)u"mm*kg^3*s^(1/2)" "(1.0 + 0.0im)*(kg^3*mm*s^(1/2))"      
+    @mytest (1.0+0im)u"mm/kg/s^2"       "(1.0 + 0.0im)*(mm/kg/s^2)"            
+    @mytest (1.0+0im)u"m/K^(1/2)/kg"    "(1.0 + 0.0im)*(m*kg^-1*K^(-1/2))"     
+    @mytest (1.0+0im)u"m/K^(1/2)/kg^-2" "(1.0 + 0.0im)*(kg^2*m*K^(-1/2))"     
+    #* Complex
+    @mytest 1.0u"mm" + 0.2im*u"km" "(0.001 + 200.0im)m" 
+    @mytest 1u"mm" + 2im*u"km"     "(1//1000 + 2000//1*im)m"
 end
 
 @testset "Quantity Rational" begin
-    @mytest (-2//3)u"nm"               "(-2//3)nm"                  
-    @mytest (-2//3)u"K^-1"             "(-2//3)K^-1"                
-    @mytest (-2//3)u"m^2"              "(-2//3)m^2"                 
-    @mytest (-2//3)u"mm*kg"            "(-2//3)*(kg*mm)"            
-    @mytest (-2//3)u"mm/kg"            "(-2//3)*(mm/kg)"            
-    @mytest (-2//3)u"m^2/K^2"          "(-2//3)*(m^2/K^2)"          
-    @mytest (-2//3)u"m^(2//3)/K^(1/2)" "(-2//3)*(m^(2//3)*K^(-1/2))"
+    #* no unit
+    @mytest (2//3)u"NoUnits"    "2//3"
+    @mytest (2//3)u"NoUnits^-1" "2//3"
+    #* a unit
+    @mytest (2//3)u"nm"        "(2//3)nm"        
+    @mytest (2//3)u"NoUnits/s" "(2//3)s^-1"      
+    @mytest (2//3)u"K^-2"      "(2//3)K^-2"      
+    @mytest (2//3)u"m^(1/2)"   "(2//3)m^(1/2)"   
+    @mytest (2//3)u"K^(1//2)"  "(2//3)K^(1/2)"   
+    @mytest (2//3)u"m^(2//3)"  "(2//3)m^(2//3)"  
+    @mytest (2//3)u"kg^(-1/2)" "(2//3)kg^(-1/2)" 
+    #* two unit
+    @mytest (2//3)u"mm*kg"        "(2//3)*(kg*mm)"        
+    @mytest (2//3)u"mm/kg"        "(2//3)*(mm/kg)"        
+    @mytest (2//3)u"(m*Hz)^-1"    "(2//3)*(Hz^-1*m^-1)"   
+    @mytest (2//3)u"(m/Hz)^-1"    "(2//3)*(Hz/m)"         
+    @mytest (2//3)u"m^2/K^3"      "(2//3)*(m^2/K^3)"      
+    @mytest (2//3)u"m^(1/2)/K^3"  "(2//3)*(m^(1/2)*K^-3)" 
+    @mytest (2//3)u"m^2/K^(1//3)" "(2//3)*(m^2*K^(-1//3))"
+    #* more unit
+    @mytest (2//3)u"mm*kg^3*s^(1/2)" "(2//3)*(kg^3*mm*s^(1/2))"      
+    @mytest (2//3)u"mm/kg/s^2"       "(2//3)*(mm/kg/s^2)"            
+    @mytest (2//3)u"m/K^(1/2)/kg"    "(2//3)*(m*kg^-1*K^(-1/2))"     
+    @mytest (2//3)u"m/K^(1/2)/kg^-2" "(2//3)*(kg^2*m*K^(-1/2))"      
+    #* Rational
+    @mytest 2u"m"//3u"s" "(2//3)*(m/s)"    
 end
 
 @testset "Quantity StepRange" begin
-    @mytest_Meta (1:10)u"nm"               "(1:10)nm"                  
-    @mytest_Meta (1:10)u"K^-1"             "(1:10)K^-1"                
-    @mytest_Meta (1:10)u"m^2"              "(1:10)m^2"                 
-    @mytest_Meta (1:10)u"mm*kg"            "(1:10)*(kg*mm)"            
-    @mytest_Meta (1:10)u"mm/kg"            "(1:10)*(mm/kg)"            
-    @mytest_Meta (1:10)u"m^2/K^2"          "(1:10)*(m^2/K^2)"          
-    @mytest_Meta (1:10)u"m^2/K^3/s"        "(1:10)*(m^2/K^3/s)"        
-    @mytest_Meta (1:10)u"m^(2//3)/K^(1/2)" "(1:10)*(m^(2//3)*K^(-1/2))"
+    #* no unit
+    @mytest_Meta (1:5)u"NoUnits"    "1:1:5" #not Unit
+    @mytest_Meta (1:5)u"NoUnits^-1" "1:1:5" #not Unit
+    #* a unit
+    @mytest_Meta (1:5)u"nm"        "(1:5)nm"        
+    @mytest_Meta (1:5)u"NoUnits/s" "(1:5)s^-1"      
+    @mytest_Meta (1:5)u"K^-2"      "(1:5)K^-2"      
+    @mytest_Meta (1:5)u"m^(1/2)"   "(1:5)m^(1/2)"   
+    @mytest_Meta (1:5)u"K^(1//2)"  "(1:5)K^(1/2)"   
+    @mytest_Meta (1:5)u"m^(2//3)"  "(1:5)m^(2//3)"  
+    @mytest_Meta (1:5)u"kg^(-1/2)" "(1:5)kg^(-1/2)" 
+    #* two unit
+    @mytest_Meta (1:5)u"mm*kg"        "(1:5)*(kg*mm)"        
+    @mytest_Meta (1:5)u"mm/kg"        "(1:5)*(mm/kg)"        
+    @mytest_Meta (1:5)u"(m*Hz)^-1"    "(1:5)*(Hz^-1*m^-1)"   
+    @mytest_Meta (1:5)u"(m/Hz)^-1"    "(1:5)*(Hz/m)"         
+    @mytest_Meta (1:5)u"m^2/K^3"      "(1:5)*(m^2/K^3)"      
+    @mytest_Meta (1:5)u"m^(1/2)/K^3"  "(1:5)*(m^(1/2)*K^-3)" 
+    @mytest_Meta (1:5)u"m^2/K^(1//3)" "(1:5)*(m^2*K^(-1//3))"
+    #* more unit
+    @mytest_Meta (1:5)u"mm*kg^3*s^(1/2)" "(1:5)*(kg^3*mm*s^(1/2))"      
+    @mytest_Meta (1:5)u"mm/kg/s^2"       "(1:5)*(mm/kg/s^2)"            
+    @mytest_Meta (1:5)u"m/K^(1/2)/kg"    "(1:5)*(m*kg^-1*K^(-1/2))"     
+    @mytest_Meta (1:5)u"m/K^(1/2)/kg^-2" "(1:5)*(kg^2*m*K^(-1/2))"    
+    #* StepRange
+    @mytest_Meta 1.0u"cm":1u"mm":1u"km" "(0.01:0.001:1000.0)m"
+    @mytest_Meta 1u"cm":1u"mm":1u"km"   "(1//100:1//1000:1000//1)m"
 end
 
 @testset "Quantity StepRangeLen" begin
-    # StepRangeLen(1u"mm", 0.01u"m", 12)
-    # @test string((1:10)u"nm"      ) == "(1:10)nm"      
-    # @test string((1:10)u"m^2"     ) == "(1:10)m^2"     
-    # @test string((1:10)u"mm*kg"   ) == "(1:10)*(kg*mm)"   
-    # @test string((1:10)u"mm/kg"   ) == "(1:10)*(mm/kg)"   
-    # @test string((1:10)u"m^2/K^2" ) == "(1:10)*(m^2/K^2)" 
-    # @test string((1:10)u"m^(2//3)/K^(1/2)" ) ==  "(1:10)*(m^(2//3)/K^(1/2))"
+     @mytest_Meta StepRangeLen(0u"m", 2u"m", 11) "(0:2:20)m"    
+end
+
+@testset "Gain" begin
+    @mytest u"1.0dB" "1.0dB"    
+end
+
+@testset "Level" begin
+    @mytest 0.0u"dBV" "0.0dBV"  
+    #@mytest 1.0u"dBV" "1.0dBV"  #Unitful internal float handling is wrong.
+    @mytest (1/2)u"dBV" "0.5dBV"  
 end
 
 #=
 using CSV, DataFrames
 @testset "Reversibility of string() and uparse()" begin
-    @test uparse(string(m)) == m
-    @test uparse(string((m,s))) == (m,s)
-    @test uparse(string(1.0)) == 1.0
-    @test uparse(string(m/s)) == m/s
-    @test uparse(string(N*m)) == N*m
-    @test uparse(string(1.0m/s)) == 1.0m/s
-    @test uparse(string(m^-1)) == m^-1
-    # @test uparse(string(dB/Hz)) == dB/Hz
-    # @test uparse(string(3.0dB/Hz)) == 3.0dB/Hz
-       
     # df = DataFrame(A = [1mm, 2.0u"N", 3u"mN*m/s"])
     # df |> CSV.write("test.csv")
     # df = CSV.read("test.csv", DataFrame)
     # @test uparse.(df.A) == [1mm, 2.0u"N", 3u"mN*m/s"]
 end
 
-typeof(nm)
-typeof(μm)
-typeof(mm)
-typeof(cm)
-typeof(m)
-typeof(km)
-typeof(inch)
-typeof(ft)
-typeof(mi)
-typeof(ac)
-typeof(mg)
-typeof(g)
-typeof(kg)
-typeof(Ra)
-typeof(°F)
-typeof(°C)
-typeof(K)
-typeof(rad)
-typeof(°)
-typeof(ms)
-typeof(s)
-typeof(minute)
-typeof(hr)
-typeof(d)
-typeof(yr)
-typeof(Hz)
-typeof(J)
-typeof(A)
-typeof(N)
-typeof(mol)
-typeof(V)
-typeof(mW)
-typeof(W)
-typeof(dB)
-typeof(dB_rp)
-typeof(dB_p)
-typeof(dBm)
-typeof(dBV)
-typeof(dBSPL)
-typeof(Decibel)
-typeof(Np)
-typeof(Np_rp)
-typeof(Np_p)
-typeof(Neper)
-typeof(C)
+typeof(u"nm")
+typeof(u"μm")
+typeof(u"mm")
+typeof(u"cm")
+typeof(u"m")
+typeof(u"km")
+typeof(u"inch")
+typeof(u"ft")
+typeof(u"mi")
+typeof(u"ac")
+typeof(u"mg")
+typeof(u"g")
+typeof(u"kg")
+typeof(u"Ra")
+typeof(u"°F")
+typeof(u"°C")
+typeof(u"K")
+typeof(u"rad")
+typeof(u"°")
+typeof(u"ms")
+typeof(u"s")
+typeof(u"minute")
+typeof(u"hr")
+typeof(u"d")
+typeof(u"yr")
+typeof(u"Hz")
+typeof(u"J")
+typeof(u"A")
+typeof(u"N")
+typeof(u"mol")
+typeof(u"V")
+typeof(u"mW")
+typeof(u"W")
+typeof(u"dB")
+typeof(u"dB_rp")
+typeof(u"dB_p")
+typeof(u"dBm")
+typeof(u"dBV")
+typeof(u"dBSPL")
+typeof(u"Decibel")
+typeof(u"Np")
+typeof(u"Np_rp")
+typeof(u"Np_p")
+typeof(u"Neper")
+typeof(u"C")
 
 typeof(1nm)
 typeof(1μm)
