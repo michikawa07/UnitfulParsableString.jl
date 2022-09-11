@@ -13,8 +13,13 @@ has_value_bracket(::Union{BigInt,Int128,Int16,Int32,Int64,Int8}) = false
 has_value_bracket(::Union{BigFloat,Float16,Float32,Float64}) =  false
 has_value_bracket(x::Number) = any(!isdigit, string(x)) # slow
 
-has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) #&& !has_value_bracket(x)
-has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 
+has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) 
+has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 && !is_u_str_expression()
+
+is_u_str_expression() = begin
+	v = get(ENV, "UNITFUL_PARSABLE_STRING_U_STR", false)
+	(tryparse(Bool, v) == true) ? true : false
+end
 
 function sortedunits(u)
 	us = collect(typeof(u).parameters[1])
@@ -88,7 +93,7 @@ function Unitful.string(u::Unitlike)
 		                         string("^", "(", p.num, "//", p.den, ")")
 		str = string(str, (i==1 ? "" : sep), prefix(y), abbr(y), pow)
 	end
-	str
+	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
 
 """
@@ -126,13 +131,17 @@ end
 function Unitful.string(x::Gain)
 	v = x.val |> string
 	val = has_value_bracket(x.val) ? string("(", v, ")") : v
-	string(val, abbr(x))
+	uni = is_u_str_expression() ? string("u\"", abbr(x) ,"\"") : abbr(x)
+	sep = has_value_bracket(x.val) && is_u_str_expression() ? "*" : ""
+	string(val, sep, uni)
 end
 
 function Unitful.string(x::Level)
 	v = ustrip(x) |> string
 	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
-	string(val, abbr(x))
+	uni = is_u_str_expression() ? string("u\"", abbr(x) ,"\"") : abbr(x)
+	sep = has_value_bracket(ustrip(x)) && is_u_str_expression() ? "*" : ""
+	string(val, sep, uni)
 end
 
 function Unitful.string(r::StepRange{T}) where T<:Quantity
