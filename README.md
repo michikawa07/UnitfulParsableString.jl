@@ -26,7 +26,7 @@ julia> string(1.0u"m*s") |> Unitful.uparse
 Values of `Unitful.Unitlike` subtypes are converted to `string` that julia can parse as following rules.
 
 Multi-units are expressed as basicaly separeted by `"*"`, but sometimes `"/"` is used exceptionally for simplicity, see below for details.
-Exponents are expressed as `"^|x|"` or `"^-|x|"` (x > 0) in principle, except for units with a rational exponent y, which are expressed by wrapping them in parentheses as `"^(y)"`.
+Exponents are expressed as `"^x"` or `"^-x"` (x > 0) in principle, except for units with a rational exponent y, which are expressed by wrapping them in parentheses as `"^(y)"`.
 
 ### Detail of separatoers
 When all exponential of the units is positive, all separates are `"*"`.
@@ -34,17 +34,17 @@ When all exponential of the units is positive, all separates are `"*"`.
 julia> string(u"m*s^2")
 "m*s^2"
 ```
-When all exponential of the units is negative, all separates are `"*"` and the negative exponential is expressed as `"^-|x|"`.
+When all exponential of the units is negative, all separates are `"*"` and the negative exponential is expressed as `"^-|w|"`.
 ```julia
 julia> string(u"(m*s)^-1") # all exponents are negative
 "m^-1*s^-1"                # -> separater is "*"
 ```
-When both positive and negative exponentials coexist, if there are rational exponentials, all separates are `"*"` and the negative exponential is expressed as `"^-|x|"`.
+When both positive and negative exponentials coexist, if there are rational exponentials, all separates are `"*"` and the negative exponential is expressed as `"^-|w|"`.
 ```julia
 julia> string(u"m^(1/2)*s^-2") # positive and negative exponent coexist
 "m^(1/2)*s^-2"                 # if rational exponent exist -> separater is "*"
 ```
-When both positive and negative exponentials coexist, if not there are rational exponentials, the separates of the units with negative exponential are `"/"` and the negative exponential is expressed as `"^|x|"`.
+When both positive and negative exponentials coexist, if not there are rational exponentials, the separates of the units with negative exponential are `"/"` and the negative exponential is expressed as `"^|w|"`.
 ```julia
 julia> string(u"m*s^-2") # positive and negative exponent coexist
 "m/s^2"                  # if rational exponent never exist -> "/" can be use for separater
