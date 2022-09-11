@@ -25,6 +25,16 @@ macro mytest_Meta(unit, str)
     end
 end
 
+using CSV, DataFrames
+@testset "CSV, DataFrames" begin
+    A = [u"1mm", 2.0u"N", 3u"N*m/s", (1//3)u"N*m/s^(1/2)/kg^(1//5)"]
+    B = [u"(1//1)mm", (2//1)u"N", (3//1)u"N*m/s", (1//3)u"N*m/s^(1/2)/kg^(1//5)"]
+    DataFrame(;A, B) |> CSV.write("sample.csv")
+    df = CSV.read("sample.csv", DataFrame)
+    
+    @test uparse.(df.A) == A
+    @test uparse.(df.B) == B
+end
 @testset "Units" begin
     #* no unit
     @mytest u"NoUnits" "NoUnits"
@@ -201,14 +211,6 @@ end
 end
 
 #=
-using CSV, DataFrames
-@testset "Reversibility of string() and uparse()" begin
-    # df = DataFrame(A = [1mm, 2.0u"N", 3u"mN*m/s"])
-    # df |> CSV.write("test.csv")
-    # df = CSV.read("test.csv", DataFrame)
-    # @test uparse.(df.A) == [1mm, 2.0u"N", 3u"mN*m/s"]
-end
-
 typeof(u"nm")
 typeof(u"μm")
 typeof(u"mm")
