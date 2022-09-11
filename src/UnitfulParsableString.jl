@@ -47,8 +47,8 @@ If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
 julia> u"m*m", string(u"m*m")
 (m², "m^2")
 
-julia> u"m*s", string(u"m*s")
-(m s, "m*s")
+julia> u"m*s^2", string(u"m*s^2")
+(m s², "m*s^2")
 ```
 
 ## Examples: Expression of negative exponential
@@ -67,11 +67,11 @@ julia> string(u"m*s^-2") # positive and negative exponent coexist
 ## Examples: Expression of rational exponential
 
 ```jldoctest
-julia> u"m^(1//2)", string(u"m^(1//2)")
-(m¹ᐟ², "m^(1/2)") 
+julia> string(u"m^(1//2)" # 1//2 == 1/2 
+"m^(1/2)"
 
-julia> u"m^(1//3)", string(u"m^(1//3)")
-(m¹ᐟ³, "m^(1//3)")
+julia> string(u"m^(1//3)" # 1//3 != 1/3
+"m^(1//3)"
 ```
 """
 function Unitful.string(u::Unitlike)
