@@ -118,13 +118,6 @@ true
 
 See more test/runtest.jl.
 
-## Example
-
-```julia
-julia>
-
-```
-
 ## Note
 `UnitfulParsableString.jl` not change the `display`, `show` and `print` functions about `Unitful.jl`.
 
