@@ -10,7 +10,7 @@ julia> string(1.0u"m*s")
 
 julia> string(1.0u"m*s") |> Unitful.uparse
 ERROR: Base.Meta.ParseError("extra token \"m\" after end of expression")
-...julia
+
 julia> using UnitfulParsableString
 
 julia> string(1.0u"m*s")
