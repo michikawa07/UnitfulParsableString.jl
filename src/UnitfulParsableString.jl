@@ -22,8 +22,51 @@ function sortedunits(u)
 end
 
 """
-メモ  
-これ単体でパース出来る様に作る
+	Unitful.string(unit::Unitlike)
+This function provied by `UnitfulParsableString` converts `Unitful.Unitlike` subtypes to `string` that julia can parse.
+
+Multi-units are expressed as basicaly separeted by "*".
+
+When all exponential of the units is positive, all separates are "*".  
+When all exponential of the units is negative, all separates are "*" and the negative exponential is expressed as "^-|x|".  
+When both positive and negative exponentials coexist, if there are rational exponentials, all separates are "*" and the negative exponential is expressed as "^-|x|".  
+When both positive and negative exponentials coexist, if not there are rational exponentials, the separates of the units with negative exponential are "/" and the negative exponential is expressed as "^|x|".  
+
+When the exponentials are rational, if the velue n//m is strictly same as n/m, it is expressed as "^(n/m)".
+If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
+
+## Examples1:
+
+```jldoctest
+julia> u"m*s", string(u"m*s")
+(m s, "m*s")
+
+julia> u"m*m", string(u"m*m")
+(m², "m^2")
+```
+
+## Examples2: Expression of negative exponential
+
+```jldoctest
+julia> u"m/s", string(u"m/s")
+(m s⁻¹, "m/s") 
+
+julia> u"(m*s)^-1", string(u"(m*s)^-1")
+(m⁻¹ s⁻¹, "m^-1*s^-1")
+
+julia> u"m/s^(1/2)", string(u"m/s^(1/2)")
+(m s⁻¹ᐟ², "m*s^(-1/2)")
+```
+
+## Examples3: Expression of rational exponential
+
+```jldoctest
+julia> u"m^(1//2)", string(u"m^(1//2)")
+(m¹ᐟ², "m^(1/2)") 
+
+julia> u"m^(1//3)", string(u"m^(1//3)")
+(m¹ᐟ³, "m^(1//3)")
+```
 """
 function Unitful.string(u::Unitlike)
 	unit_list = sortedunits(u)
@@ -48,6 +91,29 @@ function Unitful.string(u::Unitlike)
 	str
 end
 
+"""
+	Unitful.string(x::AbstractQuantity)
+	This function provied by `UnitfulParsableString` converts `Unitful.AbstractQuantity` subtypes to `string` that julia can parse.
+
+has_value_bracket(x) == true 
+ -> "(2//3)m^2"
+has_unit_bracket(x) == true 
+ -> "1.0(m*kg)"
+
+
+## Examples:
+
+```jldoctest
+julia> u"1.0s", string(u"1.0s")
+(1.0 s, "1.0s")
+
+julia> u"1.0m^(2//3)", string(u"1.0m^(2//3)")
+(1.0 m²ᐟ³, "1.0m^(2//3)")
+
+julia> u"1.0m*kg", string(u"1.0m*kg")
+(1.0 kg m, "1.0(kg*m)")
+```
+"""
 function Unitful.string(x::AbstractQuantity)
 	v = x.val |> string
 	u = unit(x) |> string
