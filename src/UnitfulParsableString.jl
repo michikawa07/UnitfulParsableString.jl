@@ -17,7 +17,7 @@ has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x))
 has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 && !is_u_str_expression()
 
 is_u_str_expression() = begin
-	v = get(ENV, "UNITFUL_PARSABLE_STRING_U_STR", false)
+	v = get(ENV, "UNITFUL_PARSABLE_STRING_U_STR", "false")
 	(tryparse(Bool, v) == true) ? true : false
 end
 
@@ -28,42 +28,43 @@ end
 
 """
 	Unitful.string(unit::Unitlike)
-This function provied by `UnitfulParsableString` converts `Unitful.Unitlike` subtypes to `string` that julia can parse.
+
+This function provied by `UnitfulParsableString` converts the value of `Unitful.Unitlike` subtypes to `string` that julia can parse.
 
 Multi-units are expressed as basicaly separeted by "*".
 
-When all exponential of the units is positive, all separates are "*".  
-When all exponential of the units is negative, all separates are "*" and the negative exponential is expressed as "^-|x|".  
-When both positive and negative exponentials coexist, if there are rational exponentials, all separates are "*" and the negative exponential is expressed as "^-|x|".  
-When both positive and negative exponentials coexist, if not there are rational exponentials, the separates of the units with negative exponential are "/" and the negative exponential is expressed as "^|x|".  
+When all exponential of the units is positive, all separates are "\\*". (ex. `"m*s"`)\n
+When all exponential of the units is negative, all separates are "\\*" and the negative exponential is expressed as "^-|x|". (ex. `"m^-1*s^-1"`)\n
+When both positive and negative exponentials coexist, if there are rational exponentials, all separates are "\\*" and the negative exponential is expressed as "^-|x|". (ex. `"m^(1/2)*s^-2"`)\n
+When both positive and negative exponentials coexist, if not there are rational exponentials, the separates of the units with negative exponential are "/" and the negative exponential is expressed as "^|x|".  (ex. `"m/s^2"`)
 
 When the exponentials are rational, if the velue n//m is strictly same as n/m, it is expressed as "^(n/m)".
 If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
 
-## Examples1:
+## Examples:
 
 ```jldoctest
-julia> u"m*s", string(u"m*s")
-(m s, "m*s")
-
 julia> u"m*m", string(u"m*m")
 (m², "m^2")
+
+julia> u"m*s", string(u"m*s")
+(m s, "m*s")
 ```
 
-## Examples2: Expression of negative exponential
+## Examples: Expression of negative exponential
 
 ```jldoctest
-julia> u"m/s", string(u"m/s")
-(m s⁻¹, "m/s") 
+julia> string(u"(m*s)^-1") # all exponents are negative
+"m^-1*s^-1"                # -> separater is "*"
 
-julia> u"(m*s)^-1", string(u"(m*s)^-1")
-(m⁻¹ s⁻¹, "m^-1*s^-1")
+julia> string(u"m^(1/2)*s^-2") # positive and negative exponent coexist
+"m^(1/2)*s^-2"                 # if rational exponent exist -> separater is "*"
 
-julia> u"m/s^(1/2)", string(u"m/s^(1/2)")
-(m s⁻¹ᐟ², "m*s^(-1/2)")
+julia> string(u"m*s^-2") # positive and negative exponent coexist
+"m/s^2"                  # if rational exponent never exist -> "/" can be use for separater
 ```
 
-## Examples3: Expression of rational exponential
+## Examples: Expression of rational exponential
 
 ```jldoctest
 julia> u"m^(1//2)", string(u"m^(1//2)")
@@ -98,25 +99,33 @@ end
 
 """
 	Unitful.string(x::AbstractQuantity)
-	This function provied by `UnitfulParsableString` converts `Unitful.AbstractQuantity` subtypes to `string` that julia can parse.
 
-has_value_bracket(x) == true 
- -> "(2//3)m^2"
-has_unit_bracket(x) == true 
- -> "1.0(m*kg)"
+This function provied by `UnitfulParsableString` converts the value of `Unitful.AbstractQuantity` subtypes to `string` that julia can parse.
 
+The `Unitful.Quantity` which have value and units is converted as 
+```
+"[ ( ] string(value) [ ) ] [ * ] [ ( ] string(unit) [ ) ]"
+```
+The presence or absence of each bracket is determined by the return values of the `has_value_bracket(x)` and `has_unit_bracket(x)` functions.
+
+if `has_value_bracket(x) && has_unit_bracket(x) == true`, the operator "\\*" is inserted.
+
+Note: see `Unitful.string(x::Unitlike)` about the string expression of unit 
 
 ## Examples:
 
 ```jldoctest
-julia> u"1.0s", string(u"1.0s")
-(1.0 s, "1.0s")
+julia> string(u"1.0s^2")	# u"1.0s^2" -> 1.0 s²
+"1.0s^2"
 
-julia> u"1.0m^(2//3)", string(u"1.0m^(2//3)")
-(1.0 m²ᐟ³, "1.0m^(2//3)")
+julia> string(u"1.0m*kg")	# u"1.0m*kg" -> 1.0 kg m
+"1.0(kg*m)"
 
-julia> u"1.0m*kg", string(u"1.0m*kg")
-(1.0 kg m, "1.0(kg*m)")
+julia> string((1//2)u"m")	# (1//2)u"m" -> 1//2 m
+"(1//2)m"
+
+julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
+"(1 + 2im)*(m/s)"
 ```
 """
 function Unitful.string(x::AbstractQuantity)
@@ -128,6 +137,11 @@ function Unitful.string(x::AbstractQuantity)
 	string(val, sep, uni)
 end
 
+"""
+	`Unitful.string(x::Gain)`
+
+あとで	
+"""
 function Unitful.string(x::Gain)
 	v = x.val |> string
 	val = has_value_bracket(x.val) ? string("(", v, ")") : v
@@ -136,6 +150,11 @@ function Unitful.string(x::Gain)
 	string(val, sep, uni)
 end
 
+"""
+	Unitful.string(x::Level)
+
+あとで	
+"""
 function Unitful.string(x::Level)
 	v = ustrip(x) |> string
 	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
@@ -144,6 +163,11 @@ function Unitful.string(x::Level)
 	string(val, sep, uni)
 end
 
+"""
+	Unitful.string(r::StepRange{T}) where T<:Quantity
+
+あとで	
+"""
 function Unitful.string(r::StepRange{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
 	U,u = unit(a), string(unit(a))
@@ -153,6 +177,11 @@ function Unitful.string(r::StepRange{T}) where T<:Quantity
 	string("(", rng, ")", uni)
 end
 
+"""
+	Unitful.string(r::StepRangeLen{T}) where T<:Quantity
+
+あとで	
+"""
 function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
 	U,u = unit(a), string(unit(a))
@@ -161,6 +190,9 @@ function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	string("(", rng, ")", uni)
 end
 
+"""
+	Unitful.string(x::typeof(NoUnits))
+"""
 function Unitful.string(x::typeof(NoUnits))
 	"NoUnits"
 end

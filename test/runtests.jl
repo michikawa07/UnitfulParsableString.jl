@@ -2,11 +2,6 @@ using UnitfulParsableString
 using Unitful
 using Test
 
-# checkexpr(str) = Meta.parse(str) |> Term.expressiontree
-# typeof(1u"m") |> Term.typestree |> display
-# typeof(u"m") |> Term.typestree |> display
-# typeof(u"dB") |> Term.typestree |> display
-
 macro mytest(unit, str) 
     quote
         u,s = $unit, $str
@@ -31,6 +26,6 @@ macro mytest_Meta(unit, str)
     end
 end
 
-#include("test_default_no_u_str.jl")
+include("test_default_no_u_str.jl")
 include("test_default_u_str.jl")
 include("test_otherPackages.jl")
