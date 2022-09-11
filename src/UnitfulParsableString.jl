@@ -78,7 +78,7 @@ function Unitful.string(u::Unitlike)
 	#* Express as `^-1` -> `/` 
 	#* if there exists a unit whose exponent part is positive 
 	#* and all exponents are written as integers.
-	is_div_note = any(u->power(u)>0, unit_list) && all(u->power(u).den==1, unit_list)
+	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
 	str = ""
 	for (i, y) in enumerate(unit_list)
 		sep = "*"
