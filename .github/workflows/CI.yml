@@ -23,8 +23,6 @@ jobs:
           - '1.8'
         os:
           - ubuntu-latest
-          - windows
-          - mac
         arch:
           - x64
     steps:
