@@ -9,11 +9,12 @@ using Unitful: # need for print
 has_value_bracket(x::Quantity) = has_value_bracket(x.val)
 has_value_bracket(::Union{Gain, Level}) = true
 has_value_bracket(::Union{Complex, Rational}) = true
-has_value_bracket(::Any) = false
+has_value_bracket(::Union{BigInt,Int128,Int16,Int32,Int64,Int8}) = false
+has_value_bracket(::Union{BigFloat,Float16,Float32,Float64}) =  false
+has_value_bracket(x::Number) = any(!isdigit, string(x)) # slow
 
 has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) #&& !has_value_bracket(x)
 has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 
-has_unit_bracket(::Any) = false
 
 function sortedunits(u)
 	us = collect(typeof(u).parameters[1])

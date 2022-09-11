@@ -35,6 +35,13 @@ using CSV, DataFrames
     @test uparse.(df.A) == A
     @test uparse.(df.B) == B
 end
+
+using Measurements
+Unitful.eval(:(± = $measurement))
+@testset "Measurements" begin
+    @mytest_Meta (10±0.1)u"m/s^2" "(10.0 ± 0.1)*(m/s^2)"
+end
+
 @testset "Units" begin
     #* no unit
     @mytest u"NoUnits" "NoUnits"
