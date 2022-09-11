@@ -1,6 +1,6 @@
 using UnitfulParsableString
-using Test, Term
 using Unitful
+using Test
 
 # checkexpr(str) = Meta.parse(str) |> Term.expressiontree
 # typeof(1u"m") |> Term.typestree |> display
@@ -89,27 +89,27 @@ end
     @mytest 1/2u"m^(2//3)"  "0.5m^(-2//3)" 
     @mytest 1/2u"kg^(-1/2)" "0.5kg^(1/2)"  
     #* two unit
-    @mytest u"1.0mm*kg"        "1.0(kg*mm)"        
-    @mytest u"1.0mm/kg"        "1.0(mm/kg)"        
+    @mytest u"1.0m*kg"        "1.0(kg*m)"        
+    @mytest u"1.0m/kg"        "1.0(m/kg)"        
     @mytest u"1.0(m*Hz)^-1"    "1.0(Hz^-1*m^-1)"   
     @mytest u"1.0(m/Hz)^-1"    "1.0(Hz/m)"         
     @mytest u"1.0m^2/K^3"      "1.0(m^2/K^3)"      
     @mytest u"1.0m^(1/2)/K^3"  "1.0(m^(1/2)*K^-3)" 
     @mytest u"1.0m^2/K^(1//3)" "1.0(m^2*K^(-1//3))"
-    @mytest 1/2u"mm*kg"        "0.5(kg^-1*mm^-1)"  
-    @mytest 1/2u"mm/kg"        "0.5(kg/mm)"        
+    @mytest 1/2u"m*kg"        "0.5(kg^-1*m^-1)"  
+    @mytest 1/2u"m/kg"        "0.5(kg/m)"        
     @mytest 1/2u"(m*Hz)^-1"    "0.5(Hz*m)"         
     @mytest 1/2u"(m/Hz)^-1"    "0.5(m/Hz)"         
     @mytest 1/2u"m^2/K^3"      "0.5(K^3/m^2)"      
     @mytest 1/2u"m^(1/2)/K^3"  "0.5(K^3*m^(-1/2))" 
     @mytest 1/2u"m^2/K^(1//3)" "0.5(K^(1//3)*m^-2)"
     #* more unit
-    @mytest u"1.0mm*kg^3*s^(1/2)" "1.0(kg^3*mm*s^(1/2))"      
-    @mytest u"1.0mm/kg/s^2"       "1.0(mm/kg/s^2)"            
+    @mytest u"1.0m*kg^3*s^(1/2)" "1.0(kg^3*m*s^(1/2))"      
+    @mytest u"1.0m/kg/s^2"       "1.0(m/kg/s^2)"            
     @mytest u"1.0m/K^(1/2)/kg"    "1.0(m*kg^-1*K^(-1/2))"     
     @mytest u"1.0m/K^(1/2)/kg^-2" "1.0(kg^2*m*K^(-1/2))"      
-    @mytest 1/2u"mm*kg^3*s^(1/2)" "0.5(kg^-3*mm^-1*s^(-1/2))" 
-    @mytest 1/2u"mm/kg/s^2"       "0.5(kg*s^2/mm)"            
+    @mytest 1/2u"m*kg^3*s^(1/2)" "0.5(kg^-3*m^-1*s^(-1/2))" 
+    @mytest 1/2u"m/kg/s^2"       "0.5(kg*s^2/m)"            
     @mytest 1/2u"m/K^(1/2)/kg"    "0.5(kg*K^(1/2)*m^-1)"      
     @mytest 1/2u"m/K^(1/2)/kg^-2" "0.5(K^(1/2)*kg^-2*m^-1)"   
 end
@@ -173,7 +173,7 @@ end
     @mytest 2u"m"//3u"s" "(2//3)*(m/s)"    
 end
 
-@testset "Quantity StepRange" begin
+@testset "StepRange{Quantity}" begin
     #* no unit
     @mytest_Meta (1:5)u"NoUnits"    "1:1:5" #not Unit
     @mytest_Meta (1:5)u"NoUnits^-1" "1:1:5" #not Unit
@@ -203,7 +203,7 @@ end
     @mytest_Meta 1u"cm":1u"mm":1u"km"   "(1//100:1//1000:1000//1)m"
 end
 
-@testset "Quantity StepRangeLen" begin
+@testset "StepRangeLen{Quantity}" begin
      @mytest_Meta StepRangeLen(0u"m", 2u"m", 11) "(0:2:20)m"    
 end
 
