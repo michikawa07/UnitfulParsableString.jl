@@ -54,7 +54,7 @@ julia> string(u"m*s^-2") # positive and negative exponent coexist
 When the exponentials are rational, if the velue n//m is strictly same as n/m, it is expressed as "^(n/m)".
 ```julia
 julia> string(u"m^(1//2)" # 1//2 == 1/2
-"m^(1/2)")
+"m^(1/2)"
 ```
 If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
 ```julia
@@ -70,28 +70,39 @@ Values of `Unitful.AbstractQuantity` subtypes to `string` that julia can parse a
 The `Unitful.Quantity` `x` have value and units (they can be get `x.val` and `unit(x)`).
 Thus, the work of this function is simply shown as follows:
 ```julia
-string( ["("], string(value), [")"], ["*"], ["("], string(units), [")"] )
+string( ["(",] string(value), [")",] ["*",] ["(",] string(units) [,")"] )
 ```
 The presence or absence of each bracket is determined by the return values of the `has_value_bracket(x)` and `has_unit_bracket(x)` functions.
 And the sepaprator `"*"` is inserted, if `has_value_bracket(x) && has_unit_bracket(x) == true`.
 
+The `has_value_bracket(x)` returns false if `string(x)` contains only digits, and true if it contains non-digits.
+However, if `typeof(x)` is a specific type, the process is lightened by multiple dispatching.
+
+The `has_unit_bracket(x)` returns false if the `unit(x)` consists of single type unit, and true if it consists of multi type units.
+
 Note: see `Unitful.string(x::Unitlike)` about the string expression of unit 
 
+At the case of `Int` the bracket is absence and, at the case of the unit consists of only `s` the bracket is absence.  
+ `has_value_bracket(x) = false` && `has_unit_bracket(x) == false`
 ```julia
-julia> string(u"1.0s^2")	# u"1.0s^2" -> 1.0 s²
-"1.0s^2"
+julia> string(u"1s^2")	# u"1s^2" -> 1 s²
+"1s^2"
 ```
-
+At the case of `Float64` the bracket is absence and, at the case of the unit consists of `kg` and `m` the bracket is presence.  
+`has_value_bracket(x) = false` && `has_unit_bracket(x) == true`
 ```julia
 julia> string(u"1.0m*kg")	# u"1.0m*kg" -> 1.0 kg m
 "1.0(kg*m)"
 ```
-
+At the case of `Rational` the bracket is presence and, at the case of the unit consists of `m` the bracket is absence.  
+`has_value_bracket(x) = true` && `has_unit_bracket(x) == false`
 ```julia
 julia> string((1//2)u"m")	# (1//2)u"m" -> 1//2 m
 "(1//2)m"
 ```
 
+At the case of `Rational` the bracket is presence and, at the case of the unit consists of `m` and `s` the bracket is presence.  
+`has_value_bracket(x) = true` && `has_unit_bracket(x) == true`
 ```julia
 julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
 "(1 + 2im)*(m/s)"
