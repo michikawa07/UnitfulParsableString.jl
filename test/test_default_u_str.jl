@@ -165,12 +165,12 @@ end
 	@mytest_Meta StepRangeLen(0u"m", 2u"m", 11) "(0:2:20)u\"m\""    
 end
 
-@testset "Gain" begin
-  @mytest_Meta u"1.0dB" "1.0u\"dB\""    
-end
+# @testset "Gain" begin
+#   @mytest_Meta u"1.0dB" "1.0u\"dB\""    
+# end
 
-@testset "Level" begin
-  @mytest_Meta 0.0u"dBV" "0.0u\"dBV\""  
-  #@mytest_Meta 1.0u"dBV" "1.0u\"dBV\""  #Unitful internal float handling is wrong.
-  @mytest_Meta (1/2)u"dBV" "0.5u\"dBV\""  
-end
+# @testset "Level" begin
+#   @mytest_Meta 0.0u"dBV" "0.0u\"dBV\""  
+#   #@mytest_Meta 1.0u"dBV" "1.0u\"dBV\""  #Unitful internal float handling is wrong.
+#   @mytest_Meta (1/2)u"dBV" "0.5u\"dBV\""  
+# end
