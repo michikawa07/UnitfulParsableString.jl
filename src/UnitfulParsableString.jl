@@ -98,13 +98,13 @@ function Unitful.string(u::Unitlike)
 end
 
 """
-	Unitful.string(x::AbstractQuantity)
+	Unitful.string(x::Quantity)
 
-This function provied by `UnitfulParsableString` converts the value of `Unitful.AbstractQuantity` subtypes to `string` that julia can parse.
+This function provied by `UnitfulParsableString` converts the value of `Unitful.Quantity` subtypes to `string` that julia can parse.
 
 The `Unitful.Quantity` which have value and units is converted as 
 ```
-"[ ( ] string(value) [ ) ] [ * ] [ ( ] string(unit) [ ) ]"
+"[ ( ,] string(value), [ ) ,] [ * ,] [ ( ,] string(unit) [, ) ]"
 ```
 The presence or absence of each bracket is determined by the return values of the `has_value_bracket(x)` and `has_unit_bracket(x)` functions.
 
