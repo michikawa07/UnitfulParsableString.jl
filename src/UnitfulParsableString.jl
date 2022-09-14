@@ -221,4 +221,15 @@ function Unitful.string(x::typeof(NoUnits))
 	"NoUnits"
 end
 
+"""
+最低の実装笑
+"""
+function Unitful.string(uarr::AbstractArray{T}; karg...) where T<:Quantity
+	uarr_sym = map( _->gensym(), uarr )
+	str = string(uarr_sym)
+	for (u,sym) in zip(uarr,uarr_sym)
+		str = replace(str, sprint(show, sym)=>string(u; karg...))
+	end
+	str
+end
 end
