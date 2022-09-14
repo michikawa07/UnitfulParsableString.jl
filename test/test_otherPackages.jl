@@ -18,6 +18,11 @@ end
     @mytest_Meta (10±0.1)u"m/s^2" "(10.0 ± 0.1)*(m/s^2)"
 end
 
+using UnitfulAtomic
+@testset "UnitfulAtomic" begin
+    #todo 
+end
+
 ####################################################################################
 
 ENV["UNITFUL_PARSABLE_STRING_U_STR"] = true

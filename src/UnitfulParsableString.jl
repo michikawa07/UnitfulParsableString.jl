@@ -2,9 +2,10 @@ module UnitfulParsableString
 
 using Unitful
 using Unitful: # unexported Struct 
-	AbstractQuantity, Unitlike, MixedUnits, Gain, Level
+	Unit, Unitlike, MixedUnits, LogScaled, Gain, Level
 using Unitful: # need for print
-	prefix, abbr, power
+	prefix, abbr, power, ustrcheck_bool
+using Memoization
 
 has_value_bracket(x::Quantity) = has_value_bracket(x.val)
 has_value_bracket(::Union{Gain, Level}) = true
@@ -21,9 +22,44 @@ is_u_str_expression() = begin
 	(tryparse(Bool, v) == true) ? true : false
 end
 
-function sortedunits(u)
-	us = collect(typeof(u).parameters[1])
+
+unittuple(u) = typeof(u).parameters[1]
+sortedunits(u) = begin
+	us = collect(unittuple(u))
 	sort!(us, by = u->power(u)>0 ? 1 : -1, rev=true)
+end
+
+
+const default_context = Module[Unitful]
+function addcontext!(mod::Module...)
+	push!(default_context, mod...)
+end
+function rmcontext!(mod::Module...)
+	filter!(m -> m ∉ mod, default_context)
+end
+
+
+@memoize definedunits(mod::Module) = begin 
+	filter( reverse!(names(mod, all=true)) ) do sym
+		return isdefined(mod, sym) && ustrcheck_bool( getfield(mod, sym) )
+	end
+end
+@memoize find_unitsymbol(unit , mod::Module) = begin
+	for sym in definedunits(mod) #総当たりで試していくダサいが現状これしか思いつかない．
+		typeof.(unittuple(getfield(mod, sym))) === (typeof(unit), ) && return sym
+	end
+	return nothing
+end
+function symbol(unit::Unit, unit_context::Module...)
+	abb = abbr(unit)
+	sym_abb = Symbol(abb)
+	for mod in unit_context
+		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
+		sym = find_unitsymbol(unit, mod)	
+		isnothing(sym) || return sym
+	end
+	@warn """A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" """ _file=nothing
+	sym_abb
 end
 
 """
@@ -74,14 +110,11 @@ julia> string(u"m^(1//3)" # 1//3 != 1/3
 "m^(1//3)"
 ```
 """
-function Unitful.string(u::Unitlike)
+function Unitful.string(u::Unitlike, mod...)
 	unit_list = sortedunits(u)
-	#* Express as `^-1` -> `/` 
-	#* if there exists a unit whose exponent part is positive 
-	#* and all exponents are written as integers.
 	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
 	str = ""
-	for (i, y) in enumerate(unit_list)
+	for (i, y) in enumerate(unit_list);
 		sep = "*"
 		p = power(y) 
 		if is_div_note && p.num<0
@@ -92,10 +125,13 @@ function Unitful.string(u::Unitlike)
 		      p.den == 1       ? string("^", p.num) : 
 		      p == p.num/p.den ? string("^", "(", p.num, "/" , p.den, ")") :
 		                         string("^", "(", p.num, "//", p.den, ")")
-		str = string(str, (i==1 ? "" : sep), prefix(y), abbr(y), pow)
+		sym = symbol(y, mod...)
+		str = string(str, (i==1 ? "" : sep), prefix(y), sym, pow)
 	end
 	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
+Unitful.string(u::Unitlike, mod::Union{AbstractVector, Tuple}) = Unitful.string(u, mod...)
+Unitful.string(u::Unitlike; unit_context=default_context) = Unitful.string(u, unit_context)
 
 """
 	Unitful.string(x::AbstractQuantity)
@@ -128,38 +164,12 @@ julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
 "(1 + 2im)*(m/s)"
 ```
 """
-function Unitful.string(x::AbstractQuantity)
-	v = x.val |> string
-	u = unit(x) |> string
+function Unitful.string(x::Quantity; karg...)
+	v = string(x.val)
+	u = string(unit(x); karg...)
 	val = has_value_bracket(x) ? string("(", v, ")") : v
 	uni = has_unit_bracket(x)  ? string("(", u, ")") : u
 	sep = has_value_bracket(x) && has_unit_bracket(x) ? "*" : ""
-	string(val, sep, uni)
-end
-
-"""
-	`Unitful.string(x::Gain)`
-
-あとで	
-"""
-function Unitful.string(x::Gain)
-	v = x.val |> string
-	val = has_value_bracket(x.val) ? string("(", v, ")") : v
-	uni = is_u_str_expression() ? string("u\"", abbr(x) ,"\"") : abbr(x)
-	sep = has_value_bracket(x.val) && is_u_str_expression() ? "*" : ""
-	string(val, sep, uni)
-end
-
-"""
-	Unitful.string(x::Level)
-
-あとで	
-"""
-function Unitful.string(x::Level)
-	v = ustrip(x) |> string
-	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
-	uni = is_u_str_expression() ? string("u\"", abbr(x) ,"\"") : abbr(x)
-	sep = has_value_bracket(ustrip(x)) && is_u_str_expression() ? "*" : ""
 	string(val, sep, uni)
 end
 
@@ -168,9 +178,9 @@ end
 
 あとで	
 """
-function Unitful.string(r::StepRange{T}) where T<:Quantity
+function Unitful.string(r::StepRange{T}; karg...) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	U,u = unit(a), string(unit(a))
+	U,u = unit(a), string(unit(a); karg...)
 	rng = ustrip(U, s)==1 ? repr(ustrip(U, a):ustrip(U, b)) : 
 	                        repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
 	uni = has_unit_bracket(U) ? string("*", "(", u, ")") : u
@@ -182,9 +192,9 @@ end
 
 あとで	
 """
-function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
+function Unitful.string(r::StepRangeLen{T}; karg...) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	U,u = unit(a), string(unit(a))
+	U,u = unit(a), string(unit(a); karg...)
 	rng = repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
 	uni = has_unit_bracket(U) ? string("*", "(", u, ")") : u
 	string("(", rng, ")", uni)
@@ -193,7 +203,7 @@ end
 """
 	Unitful.string(x::typeof(NoUnits))
 """
-function Unitful.string(x::typeof(NoUnits))
+function Unitful.string(x::typeof(NoUnits); karg...)
 	"NoUnits"
 end
 
