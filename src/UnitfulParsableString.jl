@@ -208,3 +208,63 @@ function Unitful.string(x::typeof(NoUnits); karg...)
 end
 
 end
+
+#=
+All Types defined at Unitful
+ :Affine
+ :BracketStyle
+ :Dimension
+ :IsRootPowerRatio
+ :LogInfo
+ :LogScaled
+ :MixedUnits
+ :Unit
+ :Unitlike
+=#
+
+#  Log系勉強して出直してきます．
+# function symbol(unit::LogScaled? MixedUnits?, unit_context::Module...)
+# 	abb = abbr(unit) 
+# 	sym_abb = Symbol(abb)
+# 	for mod in unit_context
+# 		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
+# 		sym = find_unitsymbol(unit, mod)	
+# 		isnothing(sym) || return sym
+# 	end
+# 	@warn """A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" """ _file=nothing
+# 	sym_abb
+# end
+# Unitful.string(u::MixedUnits, mod::Union{AbstractVector, Tuple}) = Unitful.string(u; karg...)
+# Unitful.string(u::MixedUnits; unit_context=default_context) = Unitful.string(u, unit_context)
+
+# """
+# # 	`Unitful.string(x::Gain)`
+
+# # あとで	
+# # """
+# function Unitful.string(x::Gain; karg...)
+# 	v = x.val |> string
+# 	u = symbol(x; karg...)
+# 	val = has_value_bracket(x.val) ? string("(", v, ")") : v
+# 	uni = is_u_str_expression() ? string("u\"", u ,"\"") : u
+# 	sep = has_value_bracket(x.val) && is_u_str_expression() ? "*" : ""
+# 	string(val, sep, uni)
+# end
+
+# """
+# 	Unitful.string(x::Level)
+
+# あとで	
+# """
+# function Unitful.string(x::Level; karg...)
+# 	v = ustrip(x) |> string
+# 	u = symbol(x; karg...)
+# 	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
+# 	uni = is_u_str_expression() ? string("u\"", u ,"\"") : u
+# 	sep = has_value_bracket(ustrip(x)) && is_u_str_expression() ? "*" : ""
+# 	string(val, sep, uni)
+# end
+
+# function Unitful.string(x::MixedUnits; karg...)
+# 	@show u = symbol(x; karg...)
+# end
