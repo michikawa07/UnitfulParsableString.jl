@@ -150,6 +150,8 @@ julia> 1.0u"m*s"
 1.0 m s
 ```
 
+## Limitation
+This package not suppert  `Logscaled` units i.e., `Gain` or `Lebel` yet.
 
 ## Related Packages
 
