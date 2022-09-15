@@ -30,10 +30,24 @@ sortedunits(u) = begin
 end
 
 
-const default_context = Module[Unitful]
+const default_context = Module[Unitful]#register
+"""
+	addcontext!(mod::Module...)
+
+Input modules `mod...` are added to the default unit context where the strings converted from `Units` or `Quantity` are chacked parsability.
+
+see also: `rmcontext!`
+"""
 function addcontext!(mod::Module...)
 	push!(default_context, mod...)
 end
+"""
+	rmcontext!(mod::Module...)
+
+Input modules `mod...` are removed to the default unit context where the strings converted from `Units` or `Quantity` are chacked parsability.
+
+see also: `addcontext!`
+"""
 function rmcontext!(mod::Module...)
 	filter!(m -> m ∉ mod, default_context)
 end
@@ -58,12 +72,16 @@ function symbol(unit::Unit, unit_context::Module...)
 		sym = find_unitsymbol(unit, mod)	
 		isnothing(sym) || return sym
 	end
-	@warn """A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" """ _file=nothing
+	@warn """
+	A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" 
+	If you need, please try `string(str; unit_context=[Unitful, AddtionalUnitModule...])` \
+	or `UnitfulParsableString.addcontext!(AddtionalUnitModule...); string(str)`.
+	""" _file=nothing
 	sym_abb
 end
 
 """
-	Unitful.string(unit::Unitlike)
+	Unitful.string(unit::Unitlike [, unit_context=[Unitful]])
 
 This function provied by `UnitfulParsableString` converts the value of `Unitful.Unitlike` subtypes to `string` that julia can parse.
 
@@ -76,6 +94,12 @@ When both positive and negative exponentials coexist, if not there are rational 
 
 When the exponentials are rational, if the velue n//m is strictly same as n/m, it is expressed as "^(n/m)".
 If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
+
+The generated strings are checked to see if they can be parsed in `unit_context` (the `Unitful` module by default), and a warning is issued if an unparsable string is generated.
+If warn and you know where the units defined, please specify `unit_context=[Unitful, UnitDefinedModule...])`.
+Or use unexported `addcontext!` function to add the module to the default unit context, so that `unit_context` is no longer required.
+
+see also: `addcontext!`, `rmcontext!` 
 
 ## Examples:
 
@@ -134,7 +158,7 @@ Unitful.string(u::Unitlike, mod::Union{AbstractVector, Tuple}) = Unitful.string(
 Unitful.string(u::Unitlike; unit_context=default_context) = Unitful.string(u, unit_context)
 
 """
-	Unitful.string(x::AbstractQuantity)
+	Unitful.string(x::AbstractQuantity [, unit_context=[Unitful]])
 
 This function provied by `UnitfulParsableString` converts the value of `Unitful.AbstractQuantity` subtypes to `string` that julia can parse.
 
@@ -147,6 +171,12 @@ The presence or absence of each bracket is determined by the return values of th
 if `has_value_bracket(x) && has_unit_bracket(x) == true`, the operator "\\*" is inserted.
 
 Note: see `Unitful.string(x::Unitlike)` about the string expression of unit 
+
+The generated strings are checked to see if they can be parsed in `unit_context` (the `Unitful` module by default), and a warning is issued if an unparsable string is generated.
+If warn and you know where the units defined, please specify `unit_context=[Unitful, UnitDefinedModule...])`.
+Or use unexported `addcontext!` function to add the module to the default unit context, so that `unit_context` is no longer required.
+	
+see also: `addcontext!`, `rmcontext!` 
 
 ## Examples:
 
