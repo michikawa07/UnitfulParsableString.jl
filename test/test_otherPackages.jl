@@ -11,16 +11,21 @@ using CSV, DataFrames
 end
 
 using Measurements
-@eval Unitful begin
-    const ± = $measurement
-end
+@eval Unitful begin const ± = $measurement end
 @testset "Measurements" begin
     @mytest_Meta (10±0.1)u"m/s^2" "(10.0 ± 0.1)*(m/s^2)"
 end
 
 using UnitfulAtomic
 @testset "UnitfulAtomic" begin
-    #todo 
+    u, s = 1.0u"bohr", "1.0a₀"
+    @test string(u)==s
+    @test_throws ArgumentError uparse(s; unit_context=[Unitful, UnitfulAtomic])
+
+    u, s = 1.0u"bohr", "1.0bohr"
+    unit_context = [Unitful, UnitfulAtomic]
+    @test string(u; unit_context)==s
+    @test uparse(s; unit_context)==u   
 end
 
 ####################################################################################
