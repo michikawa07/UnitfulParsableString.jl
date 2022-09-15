@@ -179,6 +179,13 @@ ENV["UNITFUL_PARSABLE_STRING_U_STR"] = false
 end
 
 @testset "Units with different abbreviations and symbols" begin
-    @mytest u"percent"   "percent"        
-    @mytest u"percent^2" "percent^2"      
+    @testset "Units" begin
+        @mytest u"percent"   "percent"        
+        @mytest u"percent^2" "percent^2"      
+    end
+
+    @testset "Affine" begin
+        @mytest u"°C" "°C"
+        @mytest u"°F" "°F"
+    end
 end

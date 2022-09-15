@@ -2,7 +2,7 @@ module UnitfulParsableString
 
 using Unitful
 using Unitful: # unexported Struct 
-	Unit, Unitlike, MixedUnits, LogScaled, Gain, Level
+	Unit, Unitlike, Units, Affine, MixedUnits, LogScaled, Gain, Level
 using Unitful: # need for print
 	prefix, abbr, power, ustrcheck_bool
 using Memoization
@@ -53,19 +53,41 @@ function rmcontext!(mod::Module...)
 end
 
 
-@memoize definedunits(mod::Module) = begin 
+@memoize definedunits(mod::Module) = begin #いらない
 	filter( reverse!(names(mod, all=true)) ) do sym
 		return isdefined(mod, sym) && ustrcheck_bool( getfield(mod, sym) )
 	end
 end
-@memoize find_unitsymbol(unit , mod::Module) = begin
+@memoize find_unitsymbol(unit , mod::Module) = begin#いらない
 	for sym in definedunits(mod) #総当たりで試していくダサいが現状これしか思いつかない．
 		typeof.(unittuple(getfield(mod, sym))) === (typeof(unit), ) && return sym
 	end
 	return nothing
 end
-function symbol(unit::Unit, unit_context::Module...)
+function symbol(unit::Unit, unit_context::Module...)#いらない
 	abb = abbr(unit)
+	sym_abb = Symbol(abb)
+	for mod in unit_context
+		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
+		sym = find_unitsymbol(unit, mod)	
+		isnothing(sym) || return sym
+	end
+	@warn """
+	A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" 
+	If you need, please try `string(str; unit_context=[Unitful, AddtionalUnitModule...])` \
+	or `UnitfulParsableString.addcontext!(AddtionalUnitModule...); string(str)`.
+	""" _file=nothing
+	sym_abb
+end
+
+@memoize find_unitsymbol(unit::Units{U, D, A}, mod::Module) where {U, D, A<:Affine} = begin#いらない
+	for sym in definedunits(mod) #総当たりで試していくダサいが現状これしか思いつかない．
+		unittuple(getfield(mod, sym)) == unit && return sym
+	end
+	return nothing
+end
+function symbol(unit::Units{U, D, A}, unit_context::Module...) where {U, D, A<:Affine}#いらない
+	abb = sprint(show, unit)
 	sym_abb = Symbol(abb)
 	for mod in unit_context
 		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
@@ -156,6 +178,13 @@ function Unitful.string(u::Unitlike, mod...)
 end
 Unitful.string(u::Unitlike, mod::Union{AbstractVector, Tuple}) = Unitful.string(u, mod...)
 Unitful.string(u::Unitlike; unit_context=default_context) = Unitful.string(u, unit_context)
+
+function Unitful.string(u::Units{U, D, A}, mod...) where {U, D, A<:Affine}
+	str = string(symbol(u, default_context...))
+	is_u_str_expression() ? string("u\"", str, "\"") : str
+end
+Unitful.string(u::Units{U, D, A}, mod::Union{AbstractVector, Tuple}) where {U, D, A<:Affine} = Unitful.string(u, mod...)
+Unitful.string(u::Units{U, D, A}; unit_context=default_context) where {U, D, A<:Affine} = Unitful.string(u, unit_context)
 
 """
 	Unitful.string(x::AbstractQuantity [, unit_context=[Unitful]])
