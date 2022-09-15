@@ -1,7 +1,7 @@
 name = "UnitfulParsableString"
 uuid = "06c00241-927a-4d5b-bb5e-6b5a2ada3567"
 authors = ["michikawa07 <michikawa.ryohei@gmail.com> and contributors"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
@@ -17,7 +17,6 @@ CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
 UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
-Term = "22787eb5-b846-44ae-b979-8e399b8463ab"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
