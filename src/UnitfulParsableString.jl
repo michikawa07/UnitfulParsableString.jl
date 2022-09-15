@@ -76,7 +76,7 @@ function symbol(unit::Unit, unit_context::Module...)#いらない
 	A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" 
 	If you need, please try `string(str; unit_context=[Unitful, AddtionalUnitModule...])` \
 	or `UnitfulParsableString.addcontext!(AddtionalUnitModule...); string(str)`.
-	""" _file=nothing
+	"""
 	sym_abb
 end
 
@@ -98,7 +98,7 @@ function symbol(unit::Units{U, D, A}, unit_context::Module...) where {U, D, A<:A
 	A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" 
 	If you need, please try `string(str; unit_context=[Unitful, AddtionalUnitModule...])` \
 	or `UnitfulParsableString.addcontext!(AddtionalUnitModule...); string(str)`.
-	""" _file=nothing
+	"""
 	sym_abb
 end
 
