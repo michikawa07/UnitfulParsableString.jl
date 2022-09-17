@@ -22,34 +22,10 @@ is_u_str_expression() = begin
 	(tryparse(Bool, v) == true) ? true : false
 end
 
-
 unittuple(u) = typeof(u).parameters[1]
 sortedunits(u) = begin
 	us = collect(unittuple(u))
 	sort!(us, by = u->power(u)>0 ? 1 : -1, rev=true)
-end
-
-
-const default_context = Module[Unitful]#register
-"""
-	addcontext!(mod::Module...)
-
-Input modules `mod...` are added to the default unit context where the strings converted from `Units` or `Quantity` are chacked parsability.
-
-see also: `rmcontext!`
-"""
-function addcontext!(mod::Module...)
-	push!(default_context, mod...)
-end
-"""
-	rmcontext!(mod::Module...)
-
-Input modules `mod...` are removed to the default unit context where the strings converted from `Units` or `Quantity` are chacked parsability.
-
-see also: `addcontext!`
-"""
-function rmcontext!(mod::Module...)
-	filter!(m -> m ∉ mod, default_context)
 end
 
 
@@ -64,19 +40,17 @@ end
 	end
 	return nothing
 end
-function symbol(unit::Unit, unit_context::Module...)#いらない
+function symbol(unit::Unit)#いらない
 	abb = abbr(unit)
 	sym_abb = Symbol(abb)
-	for mod in unit_context
+	for mod in (Unitful, Unitful.unitmodules...)
 		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
 		sym = find_unitsymbol(unit, mod)	
 		isnothing(sym) || return sym
 	end
 	@warn """
-	A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" 
-	If you need, please try `string(str; unit_context=[Unitful, AddtionalUnitModule...])` \
-	or `UnitfulParsableString.addcontext!(AddtionalUnitModule...); string(str)`.
-	""" _file=nothing
+	A symbol to be parsed into "$(abb)" could not be found in "$(vcat(Unitful, Unitful.unitmodules))" 
+	"""
 	sym_abb
 end
 
@@ -86,24 +60,22 @@ end
 	end
 	return nothing
 end
-function symbol(unit::Units{U, D, A}, unit_context::Module...) where {U, D, A<:Affine}#いらない
+function symbol(unit::Units{U, D, A}) where {U, D, A<:Affine}#いらない
 	abb = sprint(show, unit)
 	sym_abb = Symbol(abb)
-	for mod in unit_context
+	for mod in (Unitful, Unitful.unitmodules...)
 		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
 		sym = find_unitsymbol(unit, mod)	
 		isnothing(sym) || return sym
 	end
 	@warn """
-	A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" 
-	If you need, please try `string(str; unit_context=[Unitful, AddtionalUnitModule...])` \
-	or `UnitfulParsableString.addcontext!(AddtionalUnitModule...); string(str)`.
-	""" _file=nothing
+	A symbol to be parsed into "$(abb)" could not be found in "$(vcat(Unitful, Unitful.unitmodules))" 
+	"""
 	sym_abb
 end
 
 """
-	Unitful.string(unit::Unitlike [, unit_context=[Unitful]])
+	Unitful.string(unit::Unitlike)
 
 This function provied by `UnitfulParsableString` converts the value of `Unitful.Unitlike` subtypes to `string` that julia can parse.
 
@@ -117,11 +89,7 @@ When both positive and negative exponentials coexist, if not there are rational 
 When the exponentials are rational, if the velue n//m is strictly same as n/m, it is expressed as "^(n/m)".
 If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
 
-The generated strings are checked to see if they can be parsed in `unit_context` (the `Unitful` module by default), and a warning is issued if an unparsable string is generated.
-If warn and you know where the units defined, please specify `unit_context=[Unitful, UnitDefinedModule...])`.
-Or use unexported `addcontext!` function to add the module to the default unit context, so that `unit_context` is no longer required.
-
-see also: `addcontext!`, `rmcontext!` 
+The generated strings are checked to see if they can be parsed in `Unitful` and `Unitful.unitmodules`, and a warning is issued if an unparsable string is generated.
 
 ## Examples:
 
@@ -156,7 +124,7 @@ julia> string(u"m^(1//3)" # 1//3 != 1/3
 "m^(1//3)"
 ```
 """
-function Unitful.string(u::Unitlike, mod...)
+function Unitful.string(u::Unitlike)
 	unit_list = sortedunits(u)
 	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
 	str = ""
@@ -171,25 +139,21 @@ function Unitful.string(u::Unitlike, mod...)
 		      p.den == 1       ? string("^", p.num) : 
 		      p == p.num/p.den ? string("^", "(", p.num, "/" , p.den, ")") :
 		                         string("^", "(", p.num, "//", p.den, ")")
-		sym = symbol(y, mod...)
+		sym = symbol(y)
 		str = string(str, (i==1 ? "" : sep), prefix(y), sym, pow)
 	end
 	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
-Unitful.string(u::Unitlike, mod::Union{AbstractVector, Tuple}) = Unitful.string(u, mod...)
-Unitful.string(u::Unitlike; unit_context=default_context) = Unitful.string(u, unit_context)
 
-function Unitful.string(u::Units{U, D, A}, mod...) where {U, D, A<:Affine}
+function Unitful.string(u::Units{U, D, A}) where {U, D, A<:Affine}
 	str = string(symbol(u, default_context...))
 	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
-Unitful.string(u::Units{U, D, A}, mod::Union{AbstractVector, Tuple}) where {U, D, A<:Affine} = Unitful.string(u, mod...)
-Unitful.string(u::Units{U, D, A}; unit_context=default_context) where {U, D, A<:Affine} = Unitful.string(u, unit_context)
 
 """
-	Unitful.string(x::AbstractQuantity [, unit_context=[Unitful]])
+	Unitful.string(x::Quantity)
 
-This function provied by `UnitfulParsableString` converts the value of `Unitful.AbstractQuantity` subtypes to `string` that julia can parse.
+This function provied by `UnitfulParsableString` converts the value of `Unitful.Quantity` subtypes to `string` that julia can parse.
 
 The `Unitful.Quantity` which have value and units is converted as 
 ```
@@ -201,11 +165,7 @@ if `has_value_bracket(x) && has_unit_bracket(x) == true`, the operator "\\*" is 
 
 Note: see `Unitful.string(x::Unitlike)` about the string expression of unit 
 
-The generated strings are checked to see if they can be parsed in `unit_context` (the `Unitful` module by default), and a warning is issued if an unparsable string is generated.
-If warn and you know where the units defined, please specify `unit_context=[Unitful, UnitDefinedModule...])`.
-Or use unexported `addcontext!` function to add the module to the default unit context, so that `unit_context` is no longer required.
-	
-see also: `addcontext!`, `rmcontext!` 
+The generated strings are checked to see if they can be parsed in `Unitful` and `Unitful.unitmodules`, and a warning is issued if an unparsable string is generated.
 
 ## Examples:
 
@@ -223,9 +183,9 @@ julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
 "(1 + 2im)*(m/s)"
 ```
 """
-function Unitful.string(x::Quantity; karg...)
+function Unitful.string(x::Quantity)
 	v = string(x.val)
-	u = string(unit(x); karg...)
+	u = string(unit(x))
 	val = has_value_bracket(x) ? string("(", v, ")") : v
 	uni = has_unit_bracket(x)  ? string("(", u, ")") : u
 	sep = has_value_bracket(x) && has_unit_bracket(x) ? "*" : ""
@@ -237,9 +197,9 @@ end
 
 あとで	
 """
-function Unitful.string(r::StepRange{T}; karg...) where T<:Quantity
+function Unitful.string(r::StepRange{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	U,u = unit(a), string(unit(a); karg...)
+	U,u = unit(a), string(unit(a))
 	rng = ustrip(U, s)==1 ? repr(ustrip(U, a):ustrip(U, b)) : 
 	                        repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
 	uni = has_unit_bracket(U) ? string("*", "(", u, ")") : u
@@ -251,9 +211,9 @@ end
 
 あとで	
 """
-function Unitful.string(r::StepRangeLen{T}; karg...) where T<:Quantity
+function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
-	U,u = unit(a), string(unit(a); karg...)
+	U,u = unit(a), string(unit(a))
 	rng = repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
 	uni = has_unit_bracket(U) ? string("*", "(", u, ")") : u
 	string("(", rng, ")", uni)
@@ -262,7 +222,7 @@ end
 """
 	Unitful.string(x::typeof(NoUnits))
 """
-function Unitful.string(x::typeof(NoUnits); karg...)
+function Unitful.string(x::typeof(NoUnits))
 	"NoUnits"
 end
 
@@ -293,7 +253,7 @@ All Types defined at Unitful
 # 	@warn """A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" """ _file=nothing
 # 	sym_abb
 # end
-# Unitful.string(u::MixedUnits, mod::Union{AbstractVector, Tuple}) = Unitful.string(u; karg...)
+# Unitful.string(u::MixedUnits, mod::Union{AbstractVector, Tuple}) = Unitful.string(u)
 # Unitful.string(u::MixedUnits; unit_context=default_context) = Unitful.string(u, unit_context)
 
 # """
@@ -301,9 +261,9 @@ All Types defined at Unitful
 
 # # あとで	
 # # """
-# function Unitful.string(x::Gain; karg...)
+# function Unitful.string(x::Gain)
 # 	v = x.val |> string
-# 	u = symbol(x; karg...)
+# 	u = symbol(x)
 # 	val = has_value_bracket(x.val) ? string("(", v, ")") : v
 # 	uni = is_u_str_expression() ? string("u\"", u ,"\"") : u
 # 	sep = has_value_bracket(x.val) && is_u_str_expression() ? "*" : ""
@@ -315,15 +275,15 @@ All Types defined at Unitful
 
 # あとで	
 # """
-# function Unitful.string(x::Level; karg...)
+# function Unitful.string(x::Level)
 # 	v = ustrip(x) |> string
-# 	u = symbol(x; karg...)
+# 	u = symbol(x)
 # 	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
 # 	uni = is_u_str_expression() ? string("u\"", u ,"\"") : u
 # 	sep = has_value_bracket(ustrip(x)) && is_u_str_expression() ? "*" : ""
 # 	string(val, sep, uni)
 # end
 
-# function Unitful.string(x::MixedUnits; karg...)
-# 	@show u = symbol(x; karg...)
+# function Unitful.string(x::MixedUnits)
+# 	@show u = symbol(x)
 # end

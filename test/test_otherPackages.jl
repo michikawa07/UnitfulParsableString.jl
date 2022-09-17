@@ -18,13 +18,9 @@ end
 
 using UnitfulAtomic
 @testset "UnitfulAtomic" begin
-    u, s = 1.0u"bohr", "1.0a₀"
-    @test string(u)==s
-    @test_throws ArgumentError uparse(s; unit_context=[Unitful, UnitfulAtomic])
-
     u, s = 1.0u"bohr", "1.0bohr"
     unit_context = [Unitful, UnitfulAtomic]
-    @test string(u; unit_context)==s
+    @test string(u)==s
     @test uparse(s; unit_context)==u   
 end
 
