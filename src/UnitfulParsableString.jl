@@ -146,7 +146,7 @@ function Unitful.string(u::Unitlike)
 end
 
 function Unitful.string(u::Units{U, D, A}) where {U, D, A<:Affine}
-	str = string(symbol(u, default_context...))
+	str = string(symbol(u))
 	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
 
