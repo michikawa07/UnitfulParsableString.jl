@@ -2,7 +2,7 @@ module UnitfulParsableString
 
 using Unitful
 using Unitful: # unexported Struct 
-	Unit, Units, Unitlike, MixedUnits, LogScaled, Gain, Level, Affine
+	Unit, Unitlike, Units, Affine, MixedUnits, LogScaled, Gain, Level
 using Unitful: # need for print
 	prefix, abbr, power, ustrcheck_bool
 using Memoization
@@ -34,7 +34,7 @@ end
 		return isdefined(mod, sym) && ustrcheck_bool( getfield(mod, sym) )
 	end
 end
-@memoize find_unitsymbol(unit , mod::Module) = begin
+@memoize find_unitsymbol(unit , mod::Module) = begin#いらない
 	for sym in definedunits(mod) #総当たりで試していくダサいが現状これしか思いつかない．
 		typeof.(unittuple(getfield(mod, sym))) === (typeof(unit), ) && return sym
 	end
