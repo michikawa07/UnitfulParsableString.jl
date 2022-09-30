@@ -2,45 +2,40 @@ module UnitfulParsableString
 
 using Unitful
 using Unitful: # unexported Struct 
-	Unit, Unitlike, Units, Affine, MixedUnits, LogScaled, Gain, Level
+	Unit, Units, Affine, MixedUnits, LogScaled, Gain, Level
 using Unitful: # need for print
 	prefix, abbr, power, ustrcheck_bool
 using Memoization
 
-has_value_bracket(x::Quantity) = has_value_bracket(x.val)
 has_value_bracket(::Union{Gain, Level}) = true
 has_value_bracket(::Union{Complex, Rational}) = true
 has_value_bracket(::Union{BigInt,Int128,Int16,Int32,Int64,Int8}) = false
 has_value_bracket(::Union{BigFloat,Float16,Float32,Float64}) =  false
 has_value_bracket(x::Number) = any(!isdigit, string(x)) # slow
 
-has_unit_bracket(x::Quantity) = has_unit_bracket(unit(x)) 
-has_unit_bracket(u::Unitlike) = length(typeof(u).parameters[1]) > 1 && !is_u_str_expression()
+has_unit_bracket(u::Units{U}) where U = length(U) > 1 && !is_u_str_expression()
 
 is_u_str_expression() = begin
 	v = get(ENV, "UNITFUL_PARSABLE_STRING_U_STR", "false")
 	(tryparse(Bool, v) == true) ? true : false
 end
 
-unittuple(u) = typeof(u).parameters[1]
-sortedunits(u) = begin
-	us = collect(unittuple(u))
-	sort!(us, by = u->power(u)>0 ? 1 : -1, rev=true)
-end
+unitstuple(::Units{U}) where U = U
+sortedunits(::Units{U}) where U = sort!(collect(U), by = u->power(u)>0 ? 1 : -1, rev=true)
 
-
-@memoize definedunits(mod::Module) = begin #いらない
+@memoize definedunits(mod::Module) = begin
 	filter( reverse!(names(mod, all=true)) ) do sym
-		return isdefined(mod, sym) && ustrcheck_bool( getfield(mod, sym) )
+		return isdefined(mod, sym) && typeof(getfield(mod, sym)) <: Union{Units}
 	end
 end
-@memoize find_unitsymbol(unit , mod::Module) = begin#いらない
+
+@memoize find_unitsymbol(unit , mod::Module) = begin
 	for sym in definedunits(mod) #総当たりで試していくダサいが現状これしか思いつかない．
-		typeof.(unittuple(getfield(mod, sym))) === (typeof(unit), ) && return sym
+		typeof.(unitstuple(getfield(mod, sym))) === (typeof(unit), ) && return sym
 	end
 	return nothing
 end
-function symbol(unit::Unit)#いらない
+function symbol(unit::Unit)
 	abb = abbr(unit)
 	sym_abb = Symbol(abb)
 	for mod in (Unitful, Unitful.unitmodules...)
@@ -54,13 +49,13 @@ function symbol(unit::Unit)#いらない
 	sym_abb
 end
 
-@memoize find_unitsymbol(unit::Units{U, D, A}, mod::Module) where {U, D, A<:Affine} = begin#いらない
+@memoize find_unitsymbol(unit::Units{U, D, A}, mod::Module) where {U, D, A<:Affine} = begin
 	for sym in definedunits(mod) #総当たりで試していくダサいが現状これしか思いつかない．
-		unittuple(getfield(mod, sym)) == unit && return sym
+		unitstuple(getfield(mod, sym)) == unit && return sym
 	end
 	return nothing
 end
-function symbol(unit::Units{U, D, A}) where {U, D, A<:Affine}#いらない
+function symbol(unit::Units{U, D, A}) where {U, D, A<:Affine}
 	abb = sprint(show, unit)
 	sym_abb = Symbol(abb)
 	for mod in (Unitful, Unitful.unitmodules...)
@@ -75,9 +70,9 @@ function symbol(unit::Units{U, D, A}) where {U, D, A<:Affine}#いらない
 end
 
 """
-	Unitful.string(unit::Unitlike)
+	Unitful.string(unit::Units)
 
-This function provied by `UnitfulParsableString` converts the value of `Unitful.Unitlike` subtypes to `string` that julia can parse.
+This function provied by `UnitfulParsableString` converts the value of `Unitful.Units` subtypes to `string` that julia can parse.
 
 Multi-units are expressed as basicaly separeted by "*".
 
@@ -124,7 +119,7 @@ julia> string(u"m^(1//3)" # 1//3 != 1/3
 "m^(1//3)"
 ```
 """
-function Unitful.string(u::Unitlike)
+function Unitful.string(u::Units)
 	unit_list = sortedunits(u)
 	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
 	str = ""
@@ -163,7 +158,7 @@ The presence or absence of each bracket is determined by the return values of th
 
 if `has_value_bracket(x) && has_unit_bracket(x) == true`, the operator "\\*" is inserted.
 
-Note: see `Unitful.string(x::Unitlike)` about the string expression of unit 
+Note: see `Unitful.string(x::Units)` about the string expression of unit 
 
 The generated strings are checked to see if they can be parsed in `Unitful` and `Unitful.unitmodules`, and a warning is issued if an unparsable string is generated.
 
@@ -186,9 +181,9 @@ julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
 function Unitful.string(x::Quantity)
 	v = string(x.val)
 	u = string(unit(x))
-	val = has_value_bracket(x) ? string("(", v, ")") : v
-	uni = has_unit_bracket(x)  ? string("(", u, ")") : u
-	sep = has_value_bracket(x) && has_unit_bracket(x) ? "*" : ""
+	val = has_value_bracket(x.val) ? string("(", v, ")") : v
+	uni = has_unit_bracket(unit(x))  ? string("(", u, ")") : u
+	sep = has_value_bracket(x.val) && has_unit_bracket(unit(x)) ? "*" : ""
 	string(val, sep, uni)
 end
 
@@ -227,63 +222,3 @@ function Unitful.string(x::typeof(NoUnits))
 end
 
 end
-
-#=
-All Types defined at Unitful
- :Affine
- :BracketStyle
- :Dimension
- :IsRootPowerRatio
- :LogInfo
- :LogScaled
- :MixedUnits
- :Unit
- :Unitlike
-=#
-
-#  Log系勉強して出直してきます．
-# function symbol(unit::LogScaled? MixedUnits?, unit_context::Module...)
-# 	abb = abbr(unit) 
-# 	sym_abb = Symbol(abb)
-# 	for mod in unit_context
-# 		isdefined(mod, sym_abb) && ustrcheck_bool(getfield(mod, sym_abb)) && return sym_abb
-# 		sym = find_unitsymbol(unit, mod)	
-# 		isnothing(sym) || return sym
-# 	end
-# 	@warn """A symbol to be parsed into "$(abb)" could not be found in the given "$([unit_context...])" """ _file=nothing
-# 	sym_abb
-# end
-# Unitful.string(u::MixedUnits, mod::Union{AbstractVector, Tuple}) = Unitful.string(u)
-# Unitful.string(u::MixedUnits; unit_context=default_context) = Unitful.string(u, unit_context)
-
-# """
-# # 	`Unitful.string(x::Gain)`
-
-# # あとで	
-# # """
-# function Unitful.string(x::Gain)
-# 	v = x.val |> string
-# 	u = symbol(x)
-# 	val = has_value_bracket(x.val) ? string("(", v, ")") : v
-# 	uni = is_u_str_expression() ? string("u\"", u ,"\"") : u
-# 	sep = has_value_bracket(x.val) && is_u_str_expression() ? "*" : ""
-# 	string(val, sep, uni)
-# end
-
-# """
-# 	Unitful.string(x::Level)
-
-# あとで	
-# """
-# function Unitful.string(x::Level)
-# 	v = ustrip(x) |> string
-# 	u = symbol(x)
-# 	val = has_value_bracket(ustrip(x)) ? string("(", v, ")") : v
-# 	uni = is_u_str_expression() ? string("u\"", u ,"\"") : u
-# 	sep = has_value_bracket(ustrip(x)) && is_u_str_expression() ? "*" : ""
-# 	string(val, sep, uni)
-# end
-
-# function Unitful.string(x::MixedUnits)
-# 	@show u = symbol(x)
-# end
