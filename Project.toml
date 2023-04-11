@@ -8,7 +8,7 @@ Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
-Memoization = "0.1"
+Memoization = "0.1, 0.2"
 Unitful = "1"
 julia = "1"
 
