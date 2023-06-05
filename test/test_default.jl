@@ -189,3 +189,10 @@ end
         @mytest u"°F" "°F"
     end
 end
+
+@testset "Array" begin
+	# @mytest [1u"kg", 0.2u"kg"] "[1.0kg, 0.2kg]"
+	# @mytest collect(1:3) .* u"s" "[1s, 2s, 3s]"
+	@mytest_Meta [1u"kg", 0.2u"kg"] "[1.0kg, 0.2kg]"
+	@mytest_Meta collect(1:3) .* u"s" "[1s, 2s, 3s]"
+end

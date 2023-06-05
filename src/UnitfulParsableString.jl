@@ -222,7 +222,7 @@ function Unitful.string(x::typeof(NoUnits))
 end
 
 """
-最低の実装笑
+	Unitful.string(uarr::AbstractArray{T})
 """
 function Unitful.string(uarr::AbstractArray{T}; karg...) where T<:Quantity
 	uarr_sym = map( _->gensym(), uarr )
