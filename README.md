@@ -21,7 +21,7 @@ julia> string(1.0u"m*s") |> Unitful.uparse
 ```
 
 ## Expression of Unit
- 	Unitful.string(unit::Unitlike)
+	Unitful.string(unit::Unitlike)
 
 Values of `Unitful.Unitlike` subtypes are converted to `string` that julia can parse as following rules.
 
@@ -53,12 +53,12 @@ julia> string(u"m*s^-2") # positive and negative exponent coexist
 
 When the exponentials are rational, if the velue n//m is strictly same as n/m, it is expressed as "^(n/m)".
 ```julia
-julia> string(u"m^(1//2)" # 1//2 == 1/2
+julia> string(u"m^(1//2)") # 1//2 == 1/2
 "m^(1/2)"
 ```
 If not the velue n//m is strictly same as n/m, it is expressed as "^(n//m)".
 ```julia
-julia> string(u"m^(1//3)" # 1//3 != 1/3
+julia> string(u"m^(1//3)") # 1//3 != 1/3
 "m^(1//3)"
 ```
 
@@ -151,7 +151,8 @@ julia> 1.0u"m*s"
 ```
 
 ## Limitation
-This package not suppert  `Logscaled` units i.e., `Gain` or `Lebel` yet.
+This package not support  `Logscaled` units i.e., `Gain` or `Lebel` yet.
+`Array` of `Quantity` is now supported, but implementation is too rough. Please use at your own risk.
 
 ## Related Packages
 
