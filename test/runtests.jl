@@ -26,6 +26,5 @@ macro mytest_Meta(unit, str)
     end
 end
 
-include("test_otherPackages.jl")
-include("test_default.jl")
-include("test_u_str.jl")
+include("other_packages.jl")
+include("default.jl")
