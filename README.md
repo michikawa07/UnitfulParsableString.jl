@@ -21,7 +21,10 @@ julia> string(1.0u"m*s") |> Unitful.uparse
 ```
 
 ## Expression of Unit
-	Unitful.string(unit::Unitlike)
+
+```julia
+Unitful.string(unit::Unitlike)
+```
 
 Values of `Unitful.Unitlike` subtypes are converted to `string` that julia can parse as following rules.
 
@@ -63,7 +66,10 @@ julia> string(u"m^(1//3)") # 1//3 != 1/3
 ```
 
 ## Expression of Quantity
-	Unitful.string(x::AbstractQuantity)
+
+```julia
+Unitful.string(x::AbstractQuantity)
+```
 
 Values of `Unitful.AbstractQuantity` subtypes to `string` that julia can parse as following rules.
 
@@ -80,7 +86,8 @@ However, if `typeof(x)` is a specific type, the process is lightened by multiple
 
 The `has_unit_bracket(x)` returns false if the `unit(x)` consists of single type unit, and true if it consists of multi type units.
 
-Note: see `Unitful.string(x::Unitlike)` about the string expression of unit 
+Note: see `Unitful.string(x::Unitlike)` about the string expression of unit.  
+Note: if `unit(x)` == NoUnits, this method output only `string(x.val)`.
 
 At the case of `Int` the bracket is absence and, at the case of the unit consists of only `s` the bracket is absence.  
  `has_value_bracket(x) = false` && `has_unit_bracket(x) == false`
