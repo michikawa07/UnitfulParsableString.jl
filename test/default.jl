@@ -194,8 +194,17 @@ end
 	# @mytest [1u"kg", 0.2u"kg"] "[1.0kg, 0.2kg]" #`Unitful.uparse` cannot parse Array 
 	# @mytest collect(1:3) .* u"s" "[1s, 2s, 3s]" #`Unitful.uparse` cannot parse Array
 	@mytest_Meta [1u"kg", 0.2u"kg"] "[1.0kg, 0.2kg]"
+	@mytest_Meta [123, 1u"s", 0.2u"m", 3.0u"kg"/u"kg"] "[123.0, 1.0s, 0.2m, 3.0]"
 	@mytest_Meta collect(1:3) .* u"s" "[1s, 2s, 3s]"
+	string.([123, 1u"s", 0.2u"m", 3.0u"kg"/u"kg"]) == ["123.0", "1.0s", "0.2m", "3.0"]
 end
+
+# @testset "tuple" begin
+# 	@mytest (1u"kg", 0.2u"kg", 123) "(1.0kg, 0.2kg, 123.0)"
+# 	@mytest tuple(1:3...) .* u"s" "(1s, 2s, 3s)"
+# 	@mytest_Meta (1u"kg", 0.2u"kg", 123) "(1.0kg, 0.2kg, 123.0)"
+# 	@mytest_Meta tuple(1:3...) .* u"s" "(1s, 2s, 3s)"
+# end
 
 end
 

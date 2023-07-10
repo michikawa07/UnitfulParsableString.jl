@@ -181,6 +181,7 @@ julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
 function Unitful.string(x::Quantity)
 	v = string(x.val)
 	u = string(unit(x))
+	unit(x) == NoUnits && return v
 	val = has_value_bracket(x.val) ? string("(", v, ")") : v
 	uni = has_unit_bracket(unit(x))  ? string("(", u, ")") : u
 	sep = has_value_bracket(x.val) && has_unit_bracket(unit(x)) ? "*" : ""
@@ -189,8 +190,6 @@ end
 
 """
 	Unitful.string(r::StepRange{T}) where T<:Quantity
-
-あとで	
 """
 function Unitful.string(r::StepRange{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
@@ -203,8 +202,6 @@ end
 
 """
 	Unitful.string(r::StepRangeLen{T}) where T<:Quantity
-
-あとで	
 """
 function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
