@@ -1,7 +1,7 @@
 name = "UnitfulParsableString"
 uuid = "06c00241-927a-4d5b-bb5e-6b5a2ada3567"
 authors = ["michikawa07 <michikawa.ryohei@gmail.com> and contributors"]
-version = "0.1.5"
+version = "0.1.6"
 
 [deps]
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
