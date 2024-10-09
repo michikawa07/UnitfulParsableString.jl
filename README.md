@@ -1,6 +1,6 @@
 # UnitfulParsableString [![Build Status](https://github.com/michikawa07/UnitfulParsableString.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/michikawa07/UnitfulParsableString.jl/actions/workflows/CI.yml?query=branch%3Amain) [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://michikawa07.github.io/UnitfulParsableString.jl/stable/) [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://michikawa07.github.io/UnitfulParsableString.jl/dev/) [![Build Status](https://travis-ci.com/michikawa07/UnitfulParsableString.jl.svg?branch=main)](https://travis-ci.com/michikawa07/UnitfulParsableString.jl) [![UnitfulParsableString Downloads](https://shields.io/endpoint?url=https://pkgs.genieframework.com/api/v1/badge/UnitfulParsableString)](https://pkgs.genieframework.com?packages=UnitfulParsableString)
 
-`UnitfulParsableString.jl` expand [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) to add the method `Unitful.string` which convert `Quantity` (or some type) to parsable `String`.
+`UnitfulParsableString.jl` expand [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) to add the multiple dispatch of `Base.string` which convert `Quantity` (or some type) to parsable `String`.
 
 ```julia
 julia> using Unitful
@@ -23,7 +23,7 @@ julia> string(1.0u"m*s") |> Unitful.uparse
 ## Expression of Unit
 
 ```julia
-Unitful.string(unit::Units)
+string(unit::Units)
 ```
 
 Values of `Unitful.Units` subtypes are converted to `string` that julia can parse as following rules.
@@ -68,7 +68,7 @@ julia> string(u"m^(1//3)") # 1//3 != 1/3
 ## Expression of Quantity
 
 ```julia
-Unitful.string(x::Quantity)
+string(x::Quantity)
 ```
 
 Values of `Unitful.Quantity` subtypes to `string` that julia can parse as following rules.
@@ -86,7 +86,7 @@ However, if `typeof(x)` is a specific type, the process is lightened by multiple
 
 The `has_unit_bracket(x)` returns false if the `unit(x)` consists of single type unit, and true if it consists of multi type units.
 
-Note: see `Unitful.string(x::Unitlike)` about the string expression of unit.  
+Note: see `string(x::Unitlike)` about the string expression of unit.  
 Note: if `unit(x)` == NoUnits, this method output only `string(x.val)`.
 
 At the case of `Int` the bracket is absence and, at the case of the unit consists of only `s` the bracket is absence.  

@@ -7,6 +7,8 @@ using Unitful: # need for print
 	prefix, abbr, power, ustrcheck_bool
 using Memoization
 
+import Base: string
+
 has_value_bracket(::Union{Gain, Level}) = true
 has_value_bracket(::Union{Complex, Rational}) = true
 has_value_bracket(::Union{BigInt,Int128,Int16,Int32,Int64,Int8}) = false
@@ -70,7 +72,7 @@ function symbol(unit::Units{U, D, A}) where {U, D, A<:Affine}
 end
 
 """
-	Unitful.string(unit::Units)
+	string(unit::Units)
 
 This function provied by `UnitfulParsableString` converts the value of `Unitful.Units` subtypes to `string` that julia can parse.
 
@@ -119,7 +121,7 @@ julia> string(u"m^(1//3)" # 1//3 != 1/3
 "m^(1//3)"
 ```
 """
-function Unitful.string(u::Units)
+function string(u::Units)
 	unit_list = sortedunits(u)
 	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
 	str = ""
@@ -140,13 +142,13 @@ function Unitful.string(u::Units)
 	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
 
-function Unitful.string(u::Units{U, D, A}) where {U, D, A<:Affine}
+function string(u::Units{U, D, A}) where {U, D, A<:Affine}
 	str = string(symbol(u))
 	is_u_str_expression() ? string("u\"", str, "\"") : str
 end
 
 """
-	Unitful.string(x::Quantity)
+	string(x::Quantity)
 
 This function provied by `UnitfulParsableString` converts the value of `Unitful.Quantity` subtypes to `string` that julia can parse.
 
@@ -158,7 +160,7 @@ The presence or absence of each bracket is determined by the return values of th
 
 if `has_value_bracket(x) && has_unit_bracket(x) == true`, the operator "\\*" is inserted.
 
-Note: see `Unitful.string(x::Units)` about the string expression of unit 
+Note: see `string(x::Units)` about the string expression of unit 
 
 The generated strings are checked to see if they can be parsed in `Unitful` and `Unitful.unitmodules`, and a warning is issued if an unparsable string is generated.
 
@@ -178,7 +180,7 @@ julia> string((1+2im)u"m/s")	# (1+2im)u"m/s" -> (1 + 2im) m s⁻¹
 "(1 + 2im)*(m/s)"
 ```
 """
-function Unitful.string(x::Quantity)
+function string(x::Quantity)
 	v = string(x.val)
 	u = string(unit(x))
 	unit(x) == NoUnits && return v
@@ -189,9 +191,9 @@ function Unitful.string(x::Quantity)
 end
 
 """
-	Unitful.string(r::StepRange{T}) where T<:Quantity
+	string(r::StepRange{T}) where T<:Quantity
 """
-function Unitful.string(r::StepRange{T}) where T<:Quantity
+function string(r::StepRange{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
 	U,u = unit(a), string(unit(a))
 	rng = ustrip(U, s)==1 ? repr(ustrip(U, a):ustrip(U, b)) : 
@@ -201,9 +203,9 @@ function Unitful.string(r::StepRange{T}) where T<:Quantity
 end
 
 """
-	Unitful.string(r::StepRangeLen{T}) where T<:Quantity
+	string(r::StepRangeLen{T}) where T<:Quantity
 """
-function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
+function string(r::StepRangeLen{T}) where T<:Quantity
 	a,s,b = first(r), step(r), last(r)
 	U,u = unit(a), string(unit(a))
 	rng = repr(ustrip(U, a):ustrip(U, s):ustrip(U, b))
@@ -212,16 +214,16 @@ function Unitful.string(r::StepRangeLen{T}) where T<:Quantity
 end
 
 """
-	Unitful.string(x::typeof(NoUnits))
+	string(x::typeof(NoUnits))
 """
-function Unitful.string(x::typeof(NoUnits))
+function string(x::typeof(NoUnits))
 	"NoUnits"
 end
 
 """
-	Unitful.string(uarr::AbstractArray{T})
+	string(uarr::AbstractArray{T})
 """
-function Unitful.string(uarr::AbstractArray{T}; karg...) where T<:Quantity
+function string(uarr::AbstractArray{T}; karg...) where T<:Quantity
 	uarr_sym = map( _->gensym(), uarr )
 	str = string(uarr_sym)
 	for (u,sym) in zip(uarr,uarr_sym)
