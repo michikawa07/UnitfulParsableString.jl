@@ -22,6 +22,11 @@ is_u_str_expression() = begin
 	(tryparse(Bool, v) == true) ? true : false
 end
 
+is_div_slash_notation() = begin
+	v = get(ENV, "UNITFUL_PARSABLE_STRING_DIV_SLASH", "true")
+	(tryparse(Bool, v) == true) ? true : false
+end
+
 unitstuple(::Units{U}) where U = U
 sortedunits(::Units{U}) where U = sort!(collect(U), by = u->power(u)>0 ? 1 : -1, rev=true)
 
@@ -123,12 +128,14 @@ julia> string(u"m^(1//3)" # 1//3 != 1/3
 """
 function string(u::Units)
 	unit_list = sortedunits(u)
-	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
+	use_slash_notation = is_div_slash_notation() && # environment variable is true
+	              any(power(u)>0 for u in unit_list) &&   # positive exponential exist
+					  all(power(u).den==1 for u in unit_list) # rational exponential never exist
 	str = ""
 	for (i, y) in enumerate(unit_list);
 		sep = "*"
 		p = power(y) 
-		if is_div_note && p.num<0
+		if use_slash_notation && p.num<0
 			sep = "/"
 			p = abs(p)
 		end
