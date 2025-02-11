@@ -177,6 +177,7 @@ withenv("UNITFUL_PARSABLE_STRING_U_STR" => false, "UNITFUL_PARSABLE_STRING_DIV_S
     #   #@mytest 1.0u"dBV" "1.0dBV"  #Unitful internal float handling is wrong.
     #   @mytest (1/2)u"dBV" "0.5dBV"  
     # end
+
 end
 
 @testset "Units with different abbreviations and symbols" begin
@@ -561,4 +562,18 @@ withenv("UNITFUL_PARSABLE_STRING_U_STR" => false, "UNITFUL_PARSABLE_STRING_DIV_S
 	end
 
 end
+end
+
+@info "no define UNITFUL_PARSABLE_STRING_U_STR, UNITFUL_PARSABLE_STRING_DIV_SLASH"
+@testset "Option" begin
+	@test UnitfulParsableString.flag_u_str_expression[]==false
+	UnitfulParsableString.ustrexpression(true)
+	@test UnitfulParsableString.flag_u_str_expression[]==true
+
+	@test UnitfulParsableString.flag_div_slash_notation[]==true
+	UnitfulParsableString.slashnotation(false)
+	@test UnitfulParsableString.flag_div_slash_notation[]==false
+
+	@test string(u"nm")=="u\"nm\""
+	@test string(u"mm/kg")=="u\"mm*kg^-1\""
 end
