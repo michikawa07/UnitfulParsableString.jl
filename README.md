@@ -161,6 +161,58 @@ julia> 1.0u"m*s"
 This package not support  `Logscaled` units i.e., `Gain` or `Lebel` yet.
 `Array` of `Quantity` is now supported, but implementation is too rough. Please use at your own risk.
 
+## Output Options
+
+### `UnitfulParsableString.ustrexpression()`
+
+The expressions of `unit` is controlled whether to use `u_str` (`u"~"`) by this function.
+
+```julia
+julia> using Unitful, UnitfulParsableString
+
+julia> UnitfulParsableString.ustrexpression() # default
+false
+
+julia> string(1.0u"m^2/s^3")
+"1.0(m^2/s^3)"
+
+julia> UnitfulParsableString.ustrexpression(true)
+true
+
+julia> string(1.0u"m^2/s^3")
+"1.0u\"m^2/s^3\""
+```
+
+This `u_str` expression is useful for the evaluation in the `Main` module.
+
+```julia
+julia> UnitfulParsableString.ustrexpression(true);
+
+julia> string(1.0u"m/s/kg^2") |> Meta.parse |> eval # no need to use `Unitful.eval`
+1.0 m kg⁻² s⁻¹
+```
+
+### `UnitfulParsableString.slashnotation()`
+
+The expressions of `unit` is controlled whether to use `"/"` or `"*"`  in the case of division operation by this function.
+
+```julia
+julia> using Unitful, UnitfulParsableString
+
+julia> UnitfulParsableString.slashnotation() # default
+true
+
+julia> string(1.0u"m/s/kg^2")
+"1.0(m/kg^2/s)"
+
+julia> UnitfulParsableString.slashnotation(false)
+false
+
+julia> string(1.0u"m/s/kg^2")
+"1.0(m*kg^-2*s^-1)"
+```
+
+
 ## Related Packages
 
 * [Unitful.jl](https://github.com/PainterQubits/Unitful.jl) - Implements dimensional numerical quantities for Julia
