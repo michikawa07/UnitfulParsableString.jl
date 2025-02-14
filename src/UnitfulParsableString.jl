@@ -17,10 +17,27 @@ has_value_bracket(x::Number) = any(!isdigit, string(x)) # slow
 
 has_unit_bracket(u::Units{U}) where U = length(U) > 1 && !is_u_str_expression()
 
+const env_u_str::String = "UNITFUL_PARSABLE_STRING_U_STR"
+global const flag_u_str_expression = Ref(false)
 is_u_str_expression() = begin
-	v = get(ENV, "UNITFUL_PARSABLE_STRING_U_STR", "false")
-	(tryparse(Bool, v) == true) ? true : false
+	if haskey(ENV, env_u_str)
+		return (tryparse(Bool, get(ENV, env_u_str, "false")) == true) ? true : false
+	else 
+		return flag_u_str_expression[]
+	end
 end
+ustrexpression(is_use=false) = ( global flag_u_str_expression[] = is_use )
+
+const env_div_slash::String = "UNITFUL_PARSABLE_STRING_DIV_SLASH"
+global const flag_div_slash_notation = Ref(true)
+is_div_slash_notation() = begin
+	if haskey(ENV, env_div_slash)
+		return (tryparse(Bool, get(ENV, env_div_slash, "true")) == true) ? true : false
+	else 
+		return flag_div_slash_notation[]
+	end
+end
+slashnotation(is_use=true) = ( global flag_div_slash_notation[] = is_use )
 
 unitstuple(::Units{U}) where U = U
 sortedunits(::Units{U}) where U = sort!(collect(U), by = u->power(u)>0 ? 1 : -1, rev=true)
@@ -123,12 +140,14 @@ julia> string(u"m^(1//3)" # 1//3 != 1/3
 """
 function string(u::Units)
 	unit_list = sortedunits(u)
-	is_div_note = any(power(u)>0 for u in unit_list) && all(power(u).den==1 for u in unit_list)
+	use_slash_notation = is_div_slash_notation() && # environment variable is true
+	              any(power(u)>0 for u in unit_list) &&   # positive exponential exist
+					  all(power(u).den==1 for u in unit_list) # rational exponential never exist
 	str = ""
 	for (i, y) in enumerate(unit_list);
 		sep = "*"
 		p = power(y) 
-		if is_div_note && p.num<0
+		if use_slash_notation && p.num<0
 			sep = "/"
 			p = abs(p)
 		end
