@@ -17,7 +17,7 @@ has_value_bracket(x::Number) = any(!isdigit, string(x)) # slow
 
 has_unit_bracket(u::Units{U}) where U = length(U) > 1 && !is_u_str_expression()
 
-const env_u_str::String = "UNITFUL_PARSABLE_STRING_U_STR"
+const env_u_str = "UNITFUL_PARSABLE_STRING_U_STR"
 const flag_u_str_expression = Ref(false)
 is_u_str_expression() = begin
 	if haskey(ENV, env_u_str)
@@ -28,7 +28,7 @@ is_u_str_expression() = begin
 end
 ustrexpression(is_use=false) = ( flag_u_str_expression[] = is_use )
 
-const env_div_slash::String = "UNITFUL_PARSABLE_STRING_DIV_SLASH"
+const env_div_slash = "UNITFUL_PARSABLE_STRING_DIV_SLASH"
 const flag_div_slash_notation = Ref(true)
 is_div_slash_notation() = begin
 	if haskey(ENV, env_div_slash)
