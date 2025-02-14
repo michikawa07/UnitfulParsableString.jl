@@ -26,7 +26,7 @@ is_u_str_expression() = begin
 		return flag_u_str_expression[]
 	end
 end
-ustrexpression(is_use=false) = ( global flag_u_str_expression[] = is_use )
+ustrexpression(is_use=false) = ( flag_u_str_expression[] = is_use )
 
 const env_div_slash::String = "UNITFUL_PARSABLE_STRING_DIV_SLASH"
 const flag_div_slash_notation = Ref(true)
@@ -37,7 +37,7 @@ is_div_slash_notation() = begin
 		return flag_div_slash_notation[]
 	end
 end
-slashnotation(is_use=true) = ( global flag_div_slash_notation[] = is_use )
+slashnotation(is_use=true) = ( flag_div_slash_notation[] = is_use )
 
 unitstuple(::Units{U}) where U = U
 sortedunits(::Units{U}) where U = sort!(collect(U), by = u->power(u)>0 ? 1 : -1, rev=true)
