@@ -7,7 +7,7 @@ macro mytest(unit, str)
         u,s = $unit, $str
       #  @show u,s
         @test string(u)==s
-        @test uparse(s)==u        
+        @test uparse(s)===u        
     end
 end
 

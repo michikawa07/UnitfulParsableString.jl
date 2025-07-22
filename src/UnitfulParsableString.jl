@@ -12,7 +12,7 @@ import Base: string
 has_value_bracket(::Union{Gain, Level}) = true
 has_value_bracket(::Union{Complex, Rational}) = true
 has_value_bracket(::Union{BigInt,Int128,Int16,Int32,Int64,Int8}) = false
-has_value_bracket(::Union{BigFloat,Float16,Float32,Float64}) =  false
+has_value_bracket(x::Union{BigFloat,Float16,Float32,Float64}) =  !isfinite(x) 
 has_value_bracket(x::Number) = any(!isdigit, string(x)) # slow
 
 has_unit_bracket(u::Units{U}) where U = length(U) > 1 && !is_u_str_expression()

@@ -105,6 +105,64 @@ withenv("UNITFUL_PARSABLE_STRING_U_STR" => false, "UNITFUL_PARSABLE_STRING_DIV_S
         @mytest 1u"mm" + 2im*u"km"     "(1//1000 + 2000//1*im)m"
     end
 
+	@testset "Quantity NaN" begin   
+        #* no unit
+		  @mytest NaN*u"NoUnits" "NaN"
+		  #* a unit
+		  @mytest NaN*u"nm"        "(NaN)nm"
+		  @mytest NaN*u"NoUnits/s" "(NaN)s^-1"
+		  @mytest NaN*u"K^-2"      "(NaN)K^-2"
+		  @mytest NaN*u"m^(1/2)"   "(NaN)m^(1/2)"
+		  @mytest NaN*u"K^(1//2)"  "(NaN)K^(1/2)"
+		  @mytest NaN*u"m^(2//3)"  "(NaN)m^(2//3)"
+		  @mytest NaN*u"kg^(-1/2)" "(NaN)kg^(-1/2)"
+		  #* two unit
+		  @mytest NaN*u"mm*kg"        "(NaN)*(kg*mm)"
+		  @mytest NaN*u"mm/kg"        "(NaN)*(mm/kg)"
+		  @mytest NaN*u"(m*Hz)^-1"    "(NaN)*(Hz^-1*m^-1)"
+		  @mytest NaN*u"(m/Hz)^-1"    "(NaN)*(Hz/m)"
+		  @mytest NaN*u"m^2/K^3"      "(NaN)*(m^2/K^3)"
+		  @mytest NaN*u"m^(1/2)/K^3"  "(NaN)*(m^(1/2)*K^-3)"
+		  @mytest NaN*u"m^2/K^(1//3)" "(NaN)*(m^2*K^(-1//3))"
+		  #* more unit
+		  @mytest NaN*u"mm*kg^3*s^(1/2)" "(NaN)*(kg^3*mm*s^(1/2))"
+		  @mytest NaN*u"mm/kg/s^2"       "(NaN)*(mm/kg/s^2)"
+		  @mytest NaN*u"m/K^(1/2)/kg"    "(NaN)*(m*kg^-1*K^(-1/2))"
+		  @mytest NaN*u"m/K^(1/2)/kg^-2" "(NaN)*(kg^2*m*K^(-1/2))"
+		  #* Complex
+		  @mytest NaN*u"mm" + 0.2im*u"km" "(NaN + 200.0im)m"
+		  @mytest NaN*u"mm" + 2im*u"km"   "(NaN + 2000.0im)m"
+    end
+
+	 @testset "Quantity Inf" begin   
+		  #* no unit
+		  @mytest Inf*u"NoUnits" "Inf"
+		  #* a unit
+		  @mytest Inf*u"nm"        "(Inf)nm"
+		  @mytest Inf*u"NoUnits/s" "(Inf)s^-1"
+		  @mytest Inf*u"K^-2"      "(Inf)K^-2"
+		  @mytest Inf*u"m^(1/2)"   "(Inf)m^(1/2)"
+		  @mytest Inf*u"K^(1//2)"  "(Inf)K^(1/2)"
+		  @mytest Inf*u"m^(2//3)"  "(Inf)m^(2//3)"
+		  @mytest Inf*u"kg^(-1/2)" "(Inf)kg^(-1/2)"
+		  #* two unit
+		  @mytest Inf*u"mm*kg"        "(Inf)*(kg*mm)"
+		  @mytest Inf*u"mm/kg"        "(Inf)*(mm/kg)"
+		  @mytest Inf*u"(m*Hz)^-1"    "(Inf)*(Hz^-1*m^-1)"
+		  @mytest Inf*u"(m/Hz)^-1"    "(Inf)*(Hz/m)"
+		  @mytest Inf*u"m^2/K^3"      "(Inf)*(m^2/K^3)"
+		  @mytest Inf*u"m^(1/2)/K^3"  "(Inf)*(m^(1/2)*K^-3)"
+		  @mytest Inf*u"m^2/K^(1//3)" "(Inf)*(m^2*K^(-1//3))"
+		  #* more unit
+		  @mytest Inf*u"mm*kg^3*s^(1/2)" "(Inf)*(kg^3*mm*s^(1/2))"
+		  @mytest Inf*u"mm/kg/s^2"       "(Inf)*(mm/kg/s^2)"
+		  @mytest Inf*u"m/K^(1/2)/kg"    "(Inf)*(m*kg^-1*K^(-1/2))"
+		  @mytest Inf*u"m/K^(1/2)/kg^-2" "(Inf)*(kg^2*m*K^(-1/2))"
+		  #* Complex
+		  @mytest Inf*u"mm" + 0.2im*u"km" "(Inf + 200.0im)m"
+		  @mytest Inf*u"mm" + 2im*u"km"   "(Inf + 2000.0im)m"
+    end
+
     @testset "Quantity Rational" begin
         #* no unit
         @mytest (2//3)u"NoUnits"    "2//3"
